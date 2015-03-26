@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
+using System.Windows.Threading;
+using RippleCommonUtilities;
 
 namespace RippleEditor
 {
@@ -16,13 +12,13 @@ namespace RippleEditor
         private void Application_Exit_1(object sender, ExitEventArgs e)
         {
             //Stop the logging session
-            RippleCommonUtilities.LoggingHelper.StopLogging();
+            LoggingHelper.StopLogging();
         }
 
-        private void Application_DispatcherUnhandledException_1(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        private void Application_DispatcherUnhandledException_1(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
             //Stop the logging session
-            RippleCommonUtilities.LoggingHelper.StopLogging();
+            LoggingHelper.StopLogging();
             e.Handled = true;
         }
     }

@@ -28,28 +28,28 @@ namespace RippleDictionary
         ///     RippleDictionary.TypeNotKnownException" />
         public static Ripple GetRippleDictionaryFromFile(string rippleFile = null)
         {
-            StreamReader file = new StreamReader(rippleFile == null ? XMLElementsAndAttributes.RippleXMLFile : rippleFile);
+            var file = new StreamReader(rippleFile == null ? XMLElementsAndAttributes.RippleXMLFile : rippleFile);
 
-            string xml = file.ReadToEnd();
+            var xml = file.ReadToEnd();
 
-            Floor floor = GetFloorFromXML(xml);
-            Screen screen = GetScreenFromXML(xml);
+            var floor = GetFloorFromXML(xml);
+            var screen = GetScreenFromXML(xml);
 
-            Ripple ripple = new Ripple(screen, floor);
+            var ripple = new Ripple(screen, floor);
 
             return ripple;
         }
 
         public static Ripple GetRipple(String filePath)
         {
-            StreamReader file = new StreamReader(filePath + "\\..\\" + XMLElementsAndAttributes.RippleXMLFile);
+            var file = new StreamReader(filePath + "\\..\\" + XMLElementsAndAttributes.RippleXMLFile);
 
-            string xml = file.ReadToEnd();
+            var xml = file.ReadToEnd();
 
-            Floor floor = GetFloorFromXML(xml);
-            Screen screen = GetScreenFromXML(xml);
+            var floor = GetFloorFromXML(xml);
+            var screen = GetScreenFromXML(xml);
 
-            Ripple ripple = new Ripple(screen, floor);
+            var ripple = new Ripple(screen, floor);
 
             return ripple;
         }
@@ -67,8 +67,8 @@ namespace RippleDictionary
         ///     FloorCalibration.UnparseableXMLException" />
         public static CalibrationConfiguration GetFloorConfigurations(String filePath)
         {
-            StreamReader file = new StreamReader(filePath + "\\..\\" + XMLElementsAndAttributes.CalibrationXML);
-            string xml = file.ReadToEnd();
+            var file = new StreamReader(filePath + "\\..\\" + XMLElementsAndAttributes.CalibrationXML);
+            var xml = file.ReadToEnd();
 
             return GetFloorConfigFromXML(xml);
         }
@@ -84,9 +84,9 @@ namespace RippleDictionary
         public static Screen GetScreen(String filePath)
         {
             Screen screen = null;
-            StreamReader file = new StreamReader(filePath + "\\..\\" + XMLElementsAndAttributes.RippleXMLFile);
+            var file = new StreamReader(filePath + "\\..\\" + XMLElementsAndAttributes.RippleXMLFile);
 
-            string xml = file.ReadToEnd();
+            var xml = file.ReadToEnd();
 
             screen = GetScreenFromXML(xml);
 
@@ -105,7 +105,7 @@ namespace RippleDictionary
         public static Screen GetScreenFromXML(string xml)
         {
             Screen screen = null;
-            XDocument xdoc = XDocument.Load(GenerateRippleDictionaryStreamFromXML(xml));
+            var xdoc = XDocument.Load(GenerateRippleDictionaryStreamFromXML(xml));
 
             foreach (var xel in xdoc.Root.Elements())
             {
@@ -113,7 +113,7 @@ namespace RippleDictionary
                 {
                     
                     string type, id, header, content;
-                    Dictionary<string, ScreenContent> screenContents = new Dictionary<string, ScreenContent>();
+                    var screenContents = new Dictionary<string, ScreenContent>();
                     ScreenContent screenContent;
                     foreach (var tagContent in xel.Elements())
                     {
@@ -124,7 +124,7 @@ namespace RippleDictionary
                             header = tagContent.Attribute(XMLElementsAndAttributes.Header).Value;
                             content = tagContent.Attribute(XMLElementsAndAttributes.Content).Value;
                             var loopVideoObj = tagContent.Attribute(XMLElementsAndAttributes.LoopVideo);
-                            bool loopVideo = loopVideoObj != null ? (loopVideoObj.Value.ToLower() == "true" ? (bool)true : (loopVideoObj.Value.ToLower() == "false" ? (bool)false : false)) : false;
+                            var loopVideo = loopVideoObj != null ? (loopVideoObj.Value.ToLower() == "true" ? (bool)true : (loopVideoObj.Value.ToLower() == "false" ? (bool)false : false)) : false;
 
                             screenContent = new ScreenContent(GetType(type), id, header, content, loopVideo);
                             screenContents.Add(screenContent.Id, screenContent);
@@ -146,7 +146,7 @@ namespace RippleDictionary
         /// <summary>
         /// Gets the Floor tag from the file RippleXML.xml existing in the execution directory.
         /// </summary>
-        /// <param name="xml"></param>
+        /// <param name="floorDataFolder"></param>
         /// <returns>RippleDictionary.Floor</returns>
         /// <exception cref="System.NullReferenceException
         ///     System.ArgumentNullException
@@ -159,16 +159,15 @@ namespace RippleDictionary
         ///     RippleDictionary.TypeNotKnownException
         ///     RippleDictionary.ActionNotKnownException
         ///     RippleDictionary.UnparseableXMLException" />
-        public static Floor GetFloor(String filePath)
+        public static Floor GetFloor(string floorDataFolder)
         {
-            Floor floor = null;
-            StreamReader file = new StreamReader(filePath + "\\..\\" + XMLElementsAndAttributes.RippleXMLFile);
-
-            string xml = file.ReadToEnd();
-
-            floor = GetFloorFromXML(xml);
-
-            return floor;
+            var filePath = Path.Combine(floorDataFolder, XMLElementsAndAttributes.RippleXMLFile);
+            using (var stream = new StreamReader(filePath))
+            {
+                var xml = stream.ReadToEnd();
+                var floor = GetFloorFromXML(xml);
+                return floor;
+            }
         }
 
         /// <summary>
@@ -191,7 +190,7 @@ namespace RippleDictionary
         {
             Floor floor = null;
 
-            XDocument xdoc = XDocument.Load(GenerateRippleDictionaryStreamFromXML(xml));
+            var xdoc = XDocument.Load(GenerateRippleDictionaryStreamFromXML(xml));
 
             foreach (var xel in xdoc.Root.Elements())
             {
@@ -200,10 +199,10 @@ namespace RippleDictionary
                     Start start = null;
                     Transition transition = null;
                     Tile upperTile = null;
-                    Dictionary<string, Tile> tiles = new Dictionary<string, Tile>();
-                    double lockingPeriod = 0.0;
-                    int systemAutoLockPeriod = 0;
-                    String setupID = String.Empty;
+                    var tiles = new Dictionary<string, Tile>();
+                    var lockingPeriod = 0.0;
+                    var systemAutoLockPeriod = 0;
+                    var setupID = String.Empty;
 
                     foreach (var tagContent in xel.Elements())
                     {
@@ -219,8 +218,8 @@ namespace RippleDictionary
                         }
                         else if (tagContent.Name == XMLElementsAndAttributes.Transition)
                         {
-                            string music = tagContent.Attribute(XMLElementsAndAttributes.Music).Value;
-                            string animation = tagContent.Attribute(XMLElementsAndAttributes.Animation).Value;
+                            var music = tagContent.Attribute(XMLElementsAndAttributes.Music).Value;
+                            var animation = tagContent.Attribute(XMLElementsAndAttributes.Animation).Value;
 
                             transition = new Transition(music, animation);
                         }
@@ -230,18 +229,18 @@ namespace RippleDictionary
                         }
                         else if (tagContent.Name == XMLElementsAndAttributes.UpperTile)
                         {
-                            string id = tagContent.Attribute(XMLElementsAndAttributes.Id).Value;
-                            string name = tagContent.Attribute(XMLElementsAndAttributes.Name).Value;
-                            string tileType = tagContent.Attribute(XMLElementsAndAttributes.TileType).Value;
-                            string content = tagContent.Attribute(XMLElementsAndAttributes.Content).Value;
-                            string color = tagContent.Attribute(XMLElementsAndAttributes.Color).Value;
-                            string action = tagContent.Attribute(XMLElementsAndAttributes.Action).Value;
+                            var id = tagContent.Attribute(XMLElementsAndAttributes.Id).Value;
+                            var name = tagContent.Attribute(XMLElementsAndAttributes.Name).Value;
+                            var tileType = tagContent.Attribute(XMLElementsAndAttributes.TileType).Value;
+                            var content = tagContent.Attribute(XMLElementsAndAttributes.Content).Value;
+                            var color = tagContent.Attribute(XMLElementsAndAttributes.Color).Value;
+                            var action = tagContent.Attribute(XMLElementsAndAttributes.Action).Value;
                             var actionURIObj = tagContent.Attribute(XMLElementsAndAttributes.ActionURI);
-                            string actionURI = actionURIObj != null ? actionURIObj.Value : null;
-                            string style = tagContent.Attribute(XMLElementsAndAttributes.Style).Value;
-                            string coordinate = tagContent.Attribute(XMLElementsAndAttributes.Coordinate).Value;
+                            var actionURI = actionURIObj != null ? actionURIObj.Value : null;
+                            var style = tagContent.Attribute(XMLElementsAndAttributes.Style).Value;
+                            var coordinate = tagContent.Attribute(XMLElementsAndAttributes.Coordinate).Value;
                             var correspondingScreenContentTypeObj = tagContent.Attribute(XMLElementsAndAttributes.CorrespondingScreenContentType);
-                            string correspondingScreenContentType = correspondingScreenContentTypeObj != null ? correspondingScreenContentTypeObj.Value : null;
+                            var correspondingScreenContentType = correspondingScreenContentTypeObj != null ? correspondingScreenContentTypeObj.Value : null;
 
                             upperTile = new Tile(id, name, GetTileType(tileType), color, GetStyle(style), GetCoordinate(coordinate), GetAction(action), actionURI, content, GetType(correspondingScreenContentType), null);
                         }
@@ -285,9 +284,9 @@ namespace RippleDictionary
         ///     RippleDictionary.ActionNotKnownException" />
         public static Dictionary<string, Tile> GetTilesDictionary()
         {
-            Dictionary<string, Tile> tiles = new Dictionary<string, Tile>();
+            var tiles = new Dictionary<string, Tile>();
 
-            XDocument xdoc = XDocument.Load(GenerateRippleDictionaryStreamFromXML(XMLElementsAndAttributes.RippleXMLFile));
+            var xdoc = XDocument.Load(GenerateRippleDictionaryStreamFromXML(XMLElementsAndAttributes.RippleXMLFile));
 
             foreach (var xel in xdoc.Root.Elements())
             {
@@ -325,7 +324,7 @@ namespace RippleDictionary
         ///     FloorCalibration.UnparseableXMLException" />
         private static CalibrationConfiguration GetFloorConfigFromXML(string xml)
         {
-            XDocument xdoc = XDocument.Load(GenerateRippleDictionaryStreamFromXML(xml));
+            var xdoc = XDocument.Load(GenerateRippleDictionaryStreamFromXML(xml));
             CalibrationConfiguration configuration = null;
 
             foreach (var xel in xdoc.Root.Elements())
@@ -337,12 +336,12 @@ namespace RippleDictionary
                     {
                         if (tagContent.Name == XMLElementsAndAttributes.CalibrationConfiguration)
                         {
-                            string frontDistance = tagContent.Attribute(XMLElementsAndAttributes.FrontDistance).Value;
-                            string backDistance = tagContent.Attribute(XMLElementsAndAttributes.BackDistance).Value;
-                            string leftDistance = tagContent.Attribute(XMLElementsAndAttributes.LeftDistance).Value;
-                            string rightDistance = tagContent.Attribute(XMLElementsAndAttributes.RightDistance).Value;
-                            string primaryScreenWidth = tagContent.Attribute(XMLElementsAndAttributes.PrimaryScreenWidth).Value;
-                            string primaryScreenHeight = tagContent.Attribute(XMLElementsAndAttributes.PrimaryScreenHeight).Value;
+                            var frontDistance = tagContent.Attribute(XMLElementsAndAttributes.FrontDistance).Value;
+                            var backDistance = tagContent.Attribute(XMLElementsAndAttributes.BackDistance).Value;
+                            var leftDistance = tagContent.Attribute(XMLElementsAndAttributes.LeftDistance).Value;
+                            var rightDistance = tagContent.Attribute(XMLElementsAndAttributes.RightDistance).Value;
+                            var primaryScreenWidth = tagContent.Attribute(XMLElementsAndAttributes.PrimaryScreenWidth).Value;
+                            var primaryScreenHeight = tagContent.Attribute(XMLElementsAndAttributes.PrimaryScreenHeight).Value;
 
                             configuration = new CalibrationConfiguration(frontDistance, backDistance, leftDistance, rightDistance, primaryScreenWidth, primaryScreenHeight);
                         }
@@ -369,11 +368,11 @@ namespace RippleDictionary
         ///     RippleDictionary.ActionNotKnownException" />
         private static Dictionary<string, Tile> GetTilesDictionaryFromTag(XElement tagContent)
         {
-            Dictionary<string, Tile> tiles = new Dictionary<string, Tile>();
+            var tiles = new Dictionary<string, Tile>();
 
             foreach (var tileTag in tagContent.Elements())
             {
-                Tile tile = GetTile(tileTag);
+                var tile = GetTile(tileTag);
 
                 tiles.Add(tile.Id, tile);
             }
@@ -396,7 +395,7 @@ namespace RippleDictionary
         {
             Tile tile = null;
             string id, name, tileType, content, color, action, actionURI, style, coordinate, correspondingScreenContentType;
-            Dictionary<string, Tile> subTiles = new Dictionary<string, Tile>();
+            var subTiles = new Dictionary<string, Tile>();
 
             id = tileTag.Attribute(XMLElementsAndAttributes.Id).Value;
             name = tileTag.Attribute(XMLElementsAndAttributes.Name).Value;
@@ -446,22 +445,22 @@ namespace RippleDictionary
             {
                 if (startContent.Name == XMLElementsAndAttributes.Animation)
                 {
-                    string animationName = startContent.Attribute(XMLElementsAndAttributes.Name).Value;
-                    string animationContent = startContent.Attribute(XMLElementsAndAttributes.Content).Value;
-                    string animationType = startContent.Attribute(XMLElementsAndAttributes.AnimationType).Value;
+                    var animationName = startContent.Attribute(XMLElementsAndAttributes.Name).Value;
+                    var animationContent = startContent.Attribute(XMLElementsAndAttributes.Content).Value;
+                    var animationType = startContent.Attribute(XMLElementsAndAttributes.AnimationType).Value;
 
                     animation = new Animation(animationName, animationContent, GetAnimationType(animationType));
                 }
                 else if (startContent.Name == XMLElementsAndAttributes.Unlock)
                 {
-                    string mode = startContent.Attribute(XMLElementsAndAttributes.Mode).Value;
-                    string unlockType = startContent.Attribute(XMLElementsAndAttributes.UnlockType).Value;
+                    var mode = startContent.Attribute(XMLElementsAndAttributes.Mode).Value;
+                    var unlockType = startContent.Attribute(XMLElementsAndAttributes.UnlockType).Value;
 
                     unlock = new Unlock(GetMode(mode), unlockType);
                 }
                 else if (startContent.Name == XMLElementsAndAttributes.IntroVideoWaitPeriod)
                 {
-                    string waitPeriod = startContent.Attribute(XMLElementsAndAttributes.Value).Value;
+                    var waitPeriod = startContent.Attribute(XMLElementsAndAttributes.Value).Value;
 
                     introVideoWaitPeriod = Convert.ToInt32(waitPeriod);
                 }
@@ -517,11 +516,11 @@ namespace RippleDictionary
         /// <exception cref="RippleDictionary.InvalidCoordinateException" />
         private static Coordinate GetCoordinate(string coordinate)
         {
-            string[] xy = Regex.Split(coordinate, "; ");
-            string error = "Error:Error";
+            var xy = Regex.Split(coordinate, "; ");
+            var error = "Error:Error";
 
-            string x = Regex.Split((xy[0].Contains("X") ? xy[0] : (xy[1].Contains("X") ? xy[1] : error)), ":")[1].Trim(new char[] { ';', ' ' });
-            string y = Regex.Split((xy[0].Contains("Y") ? xy[0] : (xy[1].Contains("Y") ? xy[1] : error)), ":")[1].Trim(new char[] { ';', ' ' });
+            var x = Regex.Split((xy[0].Contains("X") ? xy[0] : (xy[1].Contains("X") ? xy[1] : error)), ":")[1].Trim(new char[] { ';', ' ' });
+            var y = Regex.Split((xy[0].Contains("Y") ? xy[0] : (xy[1].Contains("Y") ? xy[1] : error)), ":")[1].Trim(new char[] { ';', ' ' });
 
             if (x == "Error" || y == "Error")
             {
@@ -549,11 +548,11 @@ namespace RippleDictionary
         /// <exception cref="RippleDictionary.InvalidStyleException" />
         private static Style GetStyle(string style)
         {
-            string[] widthAndHeight = Regex.Split(style, "; ");
-            string error = "Error:Error";
+            var widthAndHeight = Regex.Split(style, "; ");
+            var error = "Error:Error";
 
-            string width = Regex.Split((widthAndHeight[0].Contains("Width") ? widthAndHeight[0] : (widthAndHeight[1].Contains("Width") ? widthAndHeight[1] : error)), ":")[1].Trim(new char[] { ';', ' ' });
-            string height = Regex.Split((widthAndHeight[0].Contains("Height") ? widthAndHeight[0] : (widthAndHeight[1].Contains("Height") ? widthAndHeight[1] : error)), ":")[1].Trim(new char[] { ';', ' ' });
+            var width = Regex.Split((widthAndHeight[0].Contains("Width") ? widthAndHeight[0] : (widthAndHeight[1].Contains("Width") ? widthAndHeight[1] : error)), ":")[1].Trim(new char[] { ';', ' ' });
+            var height = Regex.Split((widthAndHeight[0].Contains("Height") ? widthAndHeight[0] : (widthAndHeight[1].Contains("Height") ? widthAndHeight[1] : error)), ":")[1].Trim(new char[] { ';', ' ' });
 
             if (width == "Error" || height == "Error")
             {
@@ -656,11 +655,11 @@ namespace RippleDictionary
         /// <exception cref="RippleDictionary.UnparseableXMLException" />
         private static Stream GenerateRippleDictionaryStreamFromXML(string xml)
         {
-            MemoryStream stream = new MemoryStream();
+            var stream = new MemoryStream();
 
             try
             {
-                StreamWriter writer = new StreamWriter(stream);
+                var writer = new StreamWriter(stream);
                 writer.Write(xml);
                 writer.Flush();
                 stream.Position = 0;

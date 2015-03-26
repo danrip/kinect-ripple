@@ -14,8 +14,8 @@ namespace RippleFloorApp.Utilities.KinectGestures
         /// <param name="trackingID">The tracking ID.</param>
         public GestureEventArgs(string name, ulong trackingId)
         {
-            this.TrackingId = trackingId;
-            this.GestureName = name;
+            TrackingId = trackingId;
+            GestureName = name;
         }
 
         /// <summary>

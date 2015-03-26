@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 
 namespace MicrosoftIT.ManagedLogging
 {
@@ -15,18 +16,18 @@ namespace MicrosoftIT.ManagedLogging
             {
                 if (!LoggingStarted)
                 {
-                    String fileName = "";
+                    var fileName = "";
                     if (!String.IsNullOrEmpty(fileLocation))
                         fileName = fileLocation;
                     else
                     {
-                        String pathName = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "Ripple");
-                        if (!System.IO.Directory.Exists(pathName))
-                            System.IO.Directory.CreateDirectory(pathName);
-                        fileName = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "Ripple", componentName + "LoggingSession" + DateTime.Now.ToString("dd-MM-hh-mm") + ".etl");
+                        var pathName = Path.Combine(Path.GetTempPath(), "Ripple");
+                        if (!Directory.Exists(pathName))
+                            Directory.CreateDirectory(pathName);
+                        fileName = Path.Combine(Path.GetTempPath(), "Ripple", componentName + "LoggingSession" + DateTime.Now.ToString("dd-MM-hh-mm") + ".etl");
                     }
                     sessionName = componentName + "LoggingSession";
-                    ProcessStartInfo startInfo = new ProcessStartInfo();
+                    var startInfo = new ProcessStartInfo();
                     startInfo.FileName = "xperf.exe";
                     startInfo.Arguments = " -start " + sessionName + " -f " + fileName + " -on 90030054-AE81-4C8F-A8F4-966A50DBADBF";
                     startInfo.UseShellExecute = false;
@@ -49,7 +50,7 @@ namespace MicrosoftIT.ManagedLogging
                 {
                     //String com = "xperf.exe -stop " + sessionName;
                     //Process.Start(com);
-                    ProcessStartInfo startInfo = new ProcessStartInfo();
+                    var startInfo = new ProcessStartInfo();
                     startInfo.FileName = "xperf.exe";
                     startInfo.Arguments = " -stop " + sessionName;
                     startInfo.UseShellExecute = false;

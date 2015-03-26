@@ -2,8 +2,7 @@
 using System.Security.Permissions;
 using System.Runtime.InteropServices;
 using System.ComponentModel;
-using System.Collections.Generic;
-using System.Speech.Synthesis;
+using RippleCommonUtilities;
 
 namespace RippleScreenApp.Utilities
 {
@@ -36,18 +35,18 @@ namespace RippleScreenApp.Utilities
         
         public ScriptingHelper(ScreenWindow w)
         {
-            this.mExternalWPF = w;
+            mExternalWPF = w;
         }
 
         public void MessageReceived(String messageParam)
         {
             try
             {
-                this.mExternalWPF.browserElement.Document.InvokeScript("executeCommandFromFloor", new Object[]{messageParam});
+                mExternalWPF.browserElement.Document.InvokeScript("executeCommandFromFloor", new Object[]{messageParam});
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in MessageReceived of scripting Helper for Screen {0} for message {1}", ex.Message, messageParam);
+                LoggingHelper.LogTrace(1, "Went wrong in MessageReceived of scripting Helper for Screen {0} for message {1}", ex.Message, messageParam);
             }
         }
 
@@ -55,8 +54,8 @@ namespace RippleScreenApp.Utilities
         {
             try
             {
-                String[] parameters = commandParameters.Split(new Char[] { ',' });
-                bool commandExecuted = false;
+                var parameters = commandParameters.Split(new Char[] { ',' });
+                var commandExecuted = false;
                 switch (commandText)
                 {
                     case "sendCommandToBottomFloor":
@@ -64,7 +63,7 @@ namespace RippleScreenApp.Utilities
                         commandExecuted = true;
                         break;
                     case "logMessage":
-                        RippleCommonUtilities.LoggingHelper.LogTrace(1, "Log Message from HTML {0}", commandParameters);
+                        LoggingHelper.LogTrace(1, "Log Message from HTML {0}", commandParameters);
                         commandExecuted = true;
                         break;
                     case "saveFeedback":
@@ -72,14 +71,14 @@ namespace RippleScreenApp.Utilities
                         commandExecuted = true;
                         break;
                     case "GetSessionID":
-                        this.mExternalWPF.browserElement.Document.InvokeScript("executeCommandFromFloor", new Object[] { ScreenWindow.sessionGuid });
+                        mExternalWPF.browserElement.Document.InvokeScript("executeCommandFromFloor", new Object[] { ScreenWindow.sessionGuid });
                         commandExecuted = true;
                         break;
                     case "PrintDiscount":
                         //Get the values
                         if(!String.IsNullOrEmpty(commandParameters))
                         {
-                            String[] valArray = commandParameters.Split(',');
+                            var valArray = commandParameters.Split(',');
                             PrinterHelper.PrintDiscountCoupon(valArray[0], valArray[1], valArray[2]);
                         }
                         break;
@@ -88,12 +87,12 @@ namespace RippleScreenApp.Utilities
                 }
                 if (!commandExecuted)
                 {
-                    RippleCommonUtilities.LoggingHelper.LogTrace(1, "Command {0} with Parameters {1} not Supported in Screen", commandText, commandParameters);
+                    LoggingHelper.LogTrace(1, "Command {0} with Parameters {1} not Supported in Screen", commandText, commandParameters);
                 }
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in executeCommand for Scripting helper {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in executeCommand for Scripting helper {0}", ex.Message);
             }
 
         }

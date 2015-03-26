@@ -1,10 +1,9 @@
-﻿using Microsoft.Office.Core;
-using System;
-using System.Collections.Generic;
+﻿using System;
+using Microsoft.Office.Core;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.Office.Interop.PowerPoint;
+using RippleCommonUtilities;
+using Shape = Microsoft.Office.Interop.PowerPoint.Shape;
 
 namespace RippleScreenApp.Utilities
 {
@@ -12,15 +11,15 @@ namespace RippleScreenApp.Utilities
     {
         public static void PrintDiscountCoupon(string companyName, string discountProductName, string discountValueOnProduct)
         {
-            int copiesToPrint = 1;
-            string printTemplateFileName = @"\Assets\Docs\PrinterReceipt.pptx";
-            string qrCodeImageName = @"\Assets\Images\QREncode.jpg";
-            string printFileName = @"\Assets\Docs\printReceipt.pptx";
-            string printTemplateFilePath = Helper.GetAssetURI(printTemplateFileName);
-            string qrCodeImagepath = Helper.GetAssetURI(qrCodeImageName);
-            string printReceiptFilePath = Helper.GetAssetURI(printFileName);
-            Microsoft.Office.Interop.PowerPoint.Presentation work = null;
-            Microsoft.Office.Interop.PowerPoint.Application app = new Microsoft.Office.Interop.PowerPoint.Application();
+            var copiesToPrint = 1;
+            var printTemplateFileName = @"\Assets\Docs\PrinterReceipt.pptx";
+            var qrCodeImageName = @"\Assets\Images\QREncode.jpg";
+            var printFileName = @"\Assets\Docs\printReceipt.pptx";
+            var printTemplateFilePath = Helper.GetAssetURI(printTemplateFileName);
+            var qrCodeImagepath = Helper.GetAssetURI(qrCodeImageName);
+            var printReceiptFilePath = Helper.GetAssetURI(printFileName);
+            Presentation work = null;
+            var app = new Application();
 
             try
             {
@@ -33,13 +32,13 @@ namespace RippleScreenApp.Utilities
                     File.Delete(qrCodeImagepath);
                 }
 
-                Microsoft.Office.Interop.PowerPoint.Presentations presprint = app.Presentations;
-                work = presprint.Open(printTemplateFilePath, Microsoft.Office.Core.MsoTriState.msoCTrue, Microsoft.Office.Core.MsoTriState.msoCTrue, Microsoft.Office.Core.MsoTriState.msoFalse);
-                work.PrintOptions.PrintInBackground = Microsoft.Office.Core.MsoTriState.msoFalse;
-                Microsoft.Office.Interop.PowerPoint.Slide slide = work.Slides[1];
+                var presprint = app.Presentations;
+                work = presprint.Open(printTemplateFilePath, MsoTriState.msoCTrue, MsoTriState.msoCTrue, MsoTriState.msoFalse);
+                work.PrintOptions.PrintInBackground = MsoTriState.msoFalse;
+                var slide = work.Slides[1];
                 foreach (var item in slide.Shapes)
                 {
-                    var shape = (Microsoft.Office.Interop.PowerPoint.Shape)item;
+                    var shape = (Shape)item;
 
                     if (shape.HasTextFrame == MsoTriState.msoTrue)
                     {
@@ -71,7 +70,7 @@ namespace RippleScreenApp.Utilities
                         {
                             shape.Delete();
                             //Add QRCode to print
-                            RippleCommonUtilities.HelperMethods.GenerateQRCode("http://projectripple.azurewebsites.net/Ripple.aspx", qrCodeImagepath);
+                            HelperMethods.GenerateQRCode("http://projectripple.azurewebsites.net/Ripple.aspx", qrCodeImagepath);
                             slide.Shapes.AddPicture(qrCodeImagepath, MsoTriState.msoFalse, MsoTriState.msoTrue, 560, 90, 80, 80);
                         }
                     }
@@ -87,7 +86,7 @@ namespace RippleScreenApp.Utilities
                 //Delete the QRCOde image
                 File.Delete(qrCodeImagepath);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 work.Close();
                 app.Quit();
@@ -95,7 +94,7 @@ namespace RippleScreenApp.Utilities
                 File.Delete(printReceiptFilePath);
                 //Delete the QRCOde image
                 File.Delete(qrCodeImagepath);
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in  Print Discount Coupon at Screen side: {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in  Print Discount Coupon at Screen side: {0}", ex.Message);
             }
         }
     }

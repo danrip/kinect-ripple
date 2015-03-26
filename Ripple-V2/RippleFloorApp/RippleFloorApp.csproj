@@ -50,7 +50,10 @@
     <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Kinect, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=AMD64" />
+    <Reference Include="Microsoft.Kinect, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.Kinect.2.0.1410.19000\lib\net45\Microsoft.Kinect.dll</HintPath>
+    </Reference>
     <Reference Include="RippleCommonUtilities">
       <HintPath>..\Common\RippleCommonUtilities.dll</HintPath>
       <Private>True</Private>
@@ -159,7 +162,10 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
+    <None Include="Assests\Docs\PrinterReceipt.pptx" />
+    <None Include="packages.config" />
     <None Include="Properties\app.manifest" />
     <None Include="Properties\DataSources\System.Data.DataTable.datasource" />
     <None Include="Properties\Settings.settings">
@@ -173,6 +179,126 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="onlyR.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Assests\Animations-Old\Football-game\Assets\" />
+    <Folder Include="Assests\Animations-Old\Football\Assets\" />
+    <Folder Include="Assests\Animations-Old\Memory-game-front\Assets\" />
+    <Folder Include="Assests\Animations-Old\Memory-game\Assets\" />
+    <Folder Include="Assests\Animations-Old\SmileyGame\Assets\" />
+    <Folder Include="Assests\Animations-Old\WaterRipples\Assets\" />
+    <Folder Include="Assests\Animations\Royalty-free-mp3\" />
+    <Folder Include="Assests\Animations\Royalty-Free-Sounds-Wma\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Assests\Animations\Football-game\Assets\backgroundMusic.mp3" />
+    <Content Include="Assests\Animations\Football-game\Assets\backgroundMusic_old.mp3" />
+    <Resource Include="Assests\Animations\Football-game\Assets\ball.png" />
+    <Resource Include="Assests\Animations\Football-game\Assets\ball1.png" />
+    <Content Include="Assests\Animations\Football-game\Assets\Copy of main.js" />
+    <Resource Include="Assests\Animations\Football-game\Assets\field.jpg" />
+    <Resource Include="Assests\Animations\Football-game\Assets\field1.jpg" />
+    <Content Include="Assests\Animations\Football-game\Assets\gameComplete.mp3" />
+    <Content Include="Assests\Animations\Football-game\Assets\gameComplete_orig.mp3" />
+    <Content Include="Assests\Animations\Football-game\Assets\kick.mp3" />
+    <Content Include="Assests\Animations\Football-game\Assets\kick_orig.mp3" />
+    <Content Include="Assests\Animations\Football-game\Assets\main.js" />
+    <Resource Include="Assests\Animations\Football-game\Assets\net.png" />
+    <Content Include="Assests\Animations\Football-game\Assets\style.css" />
+    <Content Include="Assests\Animations\Football-game\index.html" />
+    <Content Include="Assests\Animations\Football\Assets\backgroundMusic.mp3" />
+    <Content Include="Assests\Animations\Football\Assets\backgroundMusic_orig.mp3" />
+    <Resource Include="Assests\Animations\Football\Assets\ball.png" />
+    <Resource Include="Assests\Animations\Football\Assets\ball_old.png" />
+    <Resource Include="Assests\Animations\Football\Assets\field.jpg" />
+    <Resource Include="Assests\Animations\Football\Assets\field1.jpg" />
+    <Content Include="Assests\Animations\Football\Assets\gameComplete.mp3" />
+    <Content Include="Assests\Animations\Football\Assets\gameComplete_orig.mp3" />
+    <Content Include="Assests\Animations\Football\Assets\kick.mp3" />
+    <Content Include="Assests\Animations\Football\Assets\kick_orig.mp3" />
+    <Content Include="Assests\Animations\Football\Assets\main.js" />
+    <Content Include="Assests\Animations\Football\Assets\main1.js" />
+    <Resource Include="Assests\Animations\Football\Assets\net.png" />
+    <Content Include="Assests\Animations\Football\Assets\style.css" />
+    <Content Include="Assests\Animations\Football\index.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assests\Animations\Gesture-POC-floor\Assets\main.js" />
+    <Content Include="Assests\Animations\Gesture-POC-floor\index.html" />
+    <Content Include="Assests\Animations\Gesture-POC\Assets\main.js" />
+    <Content Include="Assests\Animations\Gesture-POC\index.html" />
+    <Content Include="Assests\Animations\Memory-game-front\Assets\Copy of main.js" />
+    <Content Include="Assests\Animations\Memory-game-front\Assets\main.js" />
+    <Content Include="Assests\Animations\Memory-game-front\index.html" />
+    <Content Include="Assests\Animations\Memory-game\Assets\background.mp3" />
+    <Content Include="Assests\Animations\Memory-game\Assets\background_old.mp3" />
+    <Content Include="Assests\Animations\Memory-game\Assets\Copy of main.js" />
+    <Content Include="Assests\Animations\Memory-game\Assets\flip.mp3" />
+    <Content Include="Assests\Animations\Memory-game\Assets\flip_old.mp3" />
+    <Content Include="Assests\Animations\Memory-game\Assets\main.js" />
+    <Content Include="Assests\Animations\Memory-game\cards.html" />
+    <Content Include="Assests\Animations\Memory-game\index.html" />
+    <Content Include="Assests\Animations\SmileyGame\Assets\backgroundMusic.mp3" />
+    <Content Include="Assests\Animations\SmileyGame\Assets\backgroundMusic_orig.mp3" />
+    <Content Include="Assests\Animations\SmileyGame\Assets\Copy of main.js" />
+    <Content Include="Assests\Animations\SmileyGame\Assets\gameComplete.mp3" />
+    <Content Include="Assests\Animations\SmileyGame\Assets\gameComplete_old.mp3" />
+    <Content Include="Assests\Animations\SmileyGame\Assets\hitSound.mp3" />
+    <Content Include="Assests\Animations\SmileyGame\Assets\hitsound_old.mp3" />
+    <Content Include="Assests\Animations\SmileyGame\Assets\main.js" />
+    <Content Include="Assests\Animations\SmileyGame\Assets\style.css" />
+    <Content Include="Assests\Animations\SmileyGame\index.html" />
+    <Content Include="Assests\Animations\SnakeAndLadder-floor\Assets\background.mp3" />
+    <Content Include="Assests\Animations\SnakeAndLadder-floor\Assets\Copy of main.js" />
+    <Content Include="Assests\Animations\SnakeAndLadder-floor\Assets\flip.mp3" />
+    <Content Include="Assests\Animations\SnakeAndLadder-floor\Assets\main.js" />
+    <Content Include="Assests\Animations\SnakeAndLadder-floor\cards.html" />
+    <Content Include="Assests\Animations\SnakeAndLadder-floor\index.html" />
+    <Content Include="Assests\Animations\SnakeAndLadder-screen\Assets\Copy of main.js" />
+    <Content Include="Assests\Animations\SnakeAndLadder-screen\Assets\main.js" />
+    <Resource Include="Assests\Animations\SnakeAndLadder-screen\Assets\wheel.png" />
+    <Content Include="Assests\Animations\SnakeAndLadder-screen\index.html" />
+    <Resource Include="Assests\Animations\WaterRipples\Assets\1.png" />
+    <Resource Include="Assests\Animations\WaterRipples\Assets\2.png" />
+    <Resource Include="Assests\Animations\WaterRipples\Assets\3.png" />
+    <Resource Include="Assests\Animations\WaterRipples\Assets\4.png" />
+    <Resource Include="Assests\Animations\WaterRipples\Assets\5.png" />
+    <Resource Include="Assests\Animations\WaterRipples\Assets\6.png" />
+    <Content Include="Assests\Animations\WaterRipples\Assets\background.mp3" />
+    <Content Include="Assests\Animations\WaterRipples\Assets\background_orig.mp3" />
+    <Content Include="Assests\Animations\WaterRipples\Assets\Copy of main.js" />
+    <Resource Include="Assests\Animations\WaterRipples\Assets\flower.jpg" />
+    <Resource Include="Assests\Animations\WaterRipples\Assets\flower.png" />
+    <Resource Include="Assests\Animations\WaterRipples\Assets\flower_old.png" />
+    <Content Include="Assests\Animations\WaterRipples\Assets\images.js" />
+    <Content Include="Assests\Animations\WaterRipples\Assets\leafUnlocked.mp3" />
+    <Content Include="Assests\Animations\WaterRipples\Assets\leafUnlocked_orig.mp3" />
+    <Content Include="Assests\Animations\WaterRipples\Assets\main.js" />
+    <Resource Include="Assests\Animations\WaterRipples\Assets\Photo.jpg" />
+    <Resource Include="Assests\Animations\WaterRipples\Assets\photo.png" />
+    <Resource Include="Assests\Animations\WaterRipples\Assets\red_fish.png" />
+    <Content Include="Assests\Animations\WaterRipples\Assets\ripple.mp3" />
+    <Content Include="Assests\Animations\WaterRipples\Assets\ripple_orig.mp3" />
+    <Resource Include="Assests\Animations\WaterRipples\Assets\white_fish.png" />
+    <Resource Include="Assests\Animations\WaterRipples\Assets\yellow_fish.png" />
+    <Content Include="Assests\Animations\WaterRipples\index.html" />
+    <Content Include="Assests\Audio\transition_music.wav" />
+    <Resource Include="Assests\Images\AboutUs.jpg" />
+    <Resource Include="Assests\Images\default_start.png" />
+    <Resource Include="Assests\Images\FunCorner.png" />
+    <Resource Include="Assests\Images\GoToStart.png" />
+    <Resource Include="Assests\Images\knowRipple.png" />
+    <Resource Include="Assests\Images\Mentors.jpg" />
+    <Resource Include="Assests\Images\pptend.png" />
+    <Resource Include="Assests\Images\Team.JPG" />
+    <Content Include="Assests\Videos\GoToStart.mp4" />
+    <Content Include="Assests\Videos\RippleIntro.mp4" />
+    <Content Include="Assests\Videos\Ripple_IntroUnlock.mp4" />
+    <Content Include="Assests\Videos\ripple_start.mp4" />
+    <Content Include="Assests\Videos\Ripple_Wave.mp4" />
+    <Content Include="FloorData\RippleXML.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

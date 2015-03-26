@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Data;
 using System.IO;
 using System.Xml.Serialization;
+using RippleCommonUtilities;
 
 namespace RippleScreenApp.Utilities
 {
@@ -26,8 +27,8 @@ namespace RippleScreenApp.Utilities
         private delegate void CommitTelemetryDelegate();
         public static void CommitTelemetryAsync()
         {
-            CommitTelemetryDelegate asyncDelegate = new CommitTelemetryDelegate(CommitTelemetry);
-            AsyncOperation operation = AsyncOperationManager.CreateOperation(null);
+            var asyncDelegate = new CommitTelemetryDelegate(CommitTelemetry);
+            var operation = AsyncOperationManager.CreateOperation(null);
             asyncDelegate.BeginInvoke(null, operation);
         }
        
@@ -49,7 +50,7 @@ namespace RippleScreenApp.Utilities
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in CommitTelemetry at Screen side {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in CommitTelemetry at Screen side {0}", ex.Message);
                 writer = null;
                 if (telemetryFile != null)
                 {
@@ -78,7 +79,7 @@ namespace RippleScreenApp.Utilities
                 {
                     telemetryData = new DataSet();
                     //Initialize the Dataset and return it
-                    DataTable dt = new DataTable();
+                    var dt = new DataTable();
                     dt.Columns.Add(new DataColumn("SetupID", typeof(String)));
                     dt.Columns.Add(new DataColumn("PersonID", typeof(String)));
                     dt.Columns.Add(new DataColumn("TileName", typeof(String)));
@@ -91,7 +92,7 @@ namespace RippleScreenApp.Utilities
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in RetrieveTelemetryData at Screen side {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in RetrieveTelemetryData at Screen side {0}", ex.Message);
                 reader = null;
                 if (telemetryFile != null)
                 {

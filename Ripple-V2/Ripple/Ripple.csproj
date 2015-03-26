@@ -49,11 +49,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationFramework" />
-    <Reference Include="RippleCommonUtilities">
-      <HintPath>Common\RippleCommonUtilities.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
@@ -73,6 +70,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="onlyR.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\RippleCommonUtilities\RippleCommonUtilities.csproj">
+      <Project>{3d97fbc2-d48d-4d8d-a89d-ede969f0a219}</Project>
+      <Name>RippleCommonUtilities</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

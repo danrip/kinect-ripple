@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Mail;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RippleLocalService.Utilities
 {
@@ -29,7 +25,7 @@ namespace RippleLocalService.Utilities
             {
                 // Body Field        
                 message.Body = emailBody;
-                SmtpClient smtp = new SmtpClient(SMTPServer);
+                var smtp = new SmtpClient(SMTPServer);
                 smtp.Send(message);
             }
         }

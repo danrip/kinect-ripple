@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
 using System.ComponentModel;
-using System.Windows;
 using System.Speech.Synthesis;
 using RippleCommonUtilities;
+using RippleScreenApp.Utilities;
 
 
 namespace RippleScreenApp.DocumentPresentation
@@ -51,12 +46,12 @@ namespace RippleScreenApp.DocumentPresentation
         {
             try
             {
-                if (!DocumentPresentation.HelperMethods.HasPresentationStarted())
+                if (!HasPresentationStarted())
                 {
                     //Set focus for the Floor window
                     RippleCommonUtilities.HelperMethods.ClickOnFloorToGetFocus();
                     //Set focus for screen window also
-                    Utilities.Helper.ClickOnScreenToGetFocus();
+                    Helper.ClickOnScreenToGetFocus();
 
                     //Find document type
                     g_doctype = GetDocumentType(fileName);
@@ -84,14 +79,14 @@ namespace RippleScreenApp.DocumentPresentation
             catch (Exception ex)
             {
                 //Do nothing
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in StartPresentation for Screen {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in StartPresentation for Screen {0}", ex.Message);
             }
 
         }
 
         private static void myBackgroundWorkerForSpeech_DoWork(object sender, DoWorkEventArgs e)
         {
-            using (SpeechSynthesizer synClass = new SpeechSynthesizer())
+            using (var synClass = new SpeechSynthesizer())
             {
                 synClass.SetOutputToDefaultAudioDevice();
                 synClass.Volume = 100;
@@ -106,7 +101,7 @@ namespace RippleScreenApp.DocumentPresentation
         {
             try
             {
-                if (HelperMethods.HasPresentationStarted())
+                if (HasPresentationStarted())
                 {
                     if (g_documentClass == null)
                         return;
@@ -115,14 +110,14 @@ namespace RippleScreenApp.DocumentPresentation
                     //Set focus for the Floor window
                     RippleCommonUtilities.HelperMethods.ClickOnFloorToGetFocus();
                     //Set focus for screen window also
-                    Utilities.Helper.ClickOnScreenToGetFocus();
+                    Helper.ClickOnScreenToGetFocus();
 
                 }
             }
             catch (Exception ex)
             {
                //Do nothing
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in Stop Presentation for Screen {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in Stop Presentation for Screen {0}", ex.Message);
             }
 
         }
@@ -134,7 +129,7 @@ namespace RippleScreenApp.DocumentPresentation
         {
             try
             {
-                if (HelperMethods.HasPresentationStarted())
+                if (HasPresentationStarted())
                 {
                     if (g_documentClass == null)
                         return;
@@ -151,7 +146,7 @@ namespace RippleScreenApp.DocumentPresentation
             catch (Exception ex)
             {
                //Do nothing
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in Goto Next for Screen {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in Goto Next for Screen {0}", ex.Message);
             }
 
         }
@@ -163,7 +158,7 @@ namespace RippleScreenApp.DocumentPresentation
         {
             try
             {
-                if (HelperMethods.HasPresentationStarted())
+                if (HasPresentationStarted())
                 {
                     if (g_documentClass == null)
                         return;
@@ -173,7 +168,7 @@ namespace RippleScreenApp.DocumentPresentation
             catch (Exception ex)
             {
                 //Do nothing
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in GotoPrevious for Screen {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in GotoPrevious for Screen {0}", ex.Message);
             }
 
         }
@@ -183,7 +178,7 @@ namespace RippleScreenApp.DocumentPresentation
         /// </summary>
         private static DocType GetDocumentType(String fileName)
         {
-            String fileExtension = fileName.Substring(fileName.IndexOf(".") + 1);
+            var fileExtension = fileName.Substring(fileName.IndexOf(".") + 1);
             if (fileExtension.ToLower().Contains("ppt"))
                 return DocType.PPT;
             return DocType.NOT_DEFINED;

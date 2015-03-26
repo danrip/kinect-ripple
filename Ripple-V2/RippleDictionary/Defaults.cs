@@ -14,7 +14,7 @@
             Defaults.column = column;
             Defaults.id = id;
             Defaults.subTile = subTile;
-            Defaults.Tile = new Tile(XMLElementsAndAttributes.Tile, XMLElementsAndAttributes.Tile, TileType.OnlyMedia, "#FFFFFF", GetStyle(), GetCoordinate(), TileAction.Standard, null);
+            Tile = new Tile(XMLElementsAndAttributes.Tile, XMLElementsAndAttributes.Tile, TileType.OnlyMedia, "#FFFFFF", GetStyle(), GetCoordinate(), TileAction.Standard, null);
         } 
 	    #endregion
 
@@ -25,8 +25,8 @@
         #region Helpers
         private static Coordinate GetCoordinate()
         {
-            int rowId = (id % column == 0 ? id / column : (id / column) + 1); // Avoiding Ceiling()
-            int columnId = (id % column == 0 ? column : id % column);
+            var rowId = (id % column == 0 ? id / column : (id / column) + 1); // Avoiding Ceiling()
+            var columnId = (id % column == 0 ? column : id % column);
 
             return new Coordinate((columnId - 1), (row - rowId + 1));
         }

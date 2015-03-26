@@ -1,89 +1,98 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Forms.Integration;
 using System.Windows.Media;
+using System.Windows.Threading;
+using RippleCommonUtilities;
 
 namespace RippleFloorApp
 {
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>
-    public partial class App : Application
+    public partial class App
     {
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            String fileLocation = System.Configuration.ConfigurationManager.AppSettings["LogFileLocation"];
-
+            var fileLocation = ConfigurationManager.AppSettings["LogFileLocation"];
+            const string componentName = "Ripple Floor App";
+            
             if (!String.IsNullOrEmpty(fileLocation))
             {
-                RippleCommonUtilities.LoggingHelper.StartLogging("RippleApp", fileLocation);
+                LoggingHelper.StartLogging(componentName, fileLocation);
             }
             else
             {
-                RippleCommonUtilities.LoggingHelper.StartLogging("RippleApp");
+                LoggingHelper.StartLogging(componentName);
             }
 
-            double top = 0.0;
-            double left = 0.0;
-            double HRes = 1280;
-            double VRes = 800;
-            for (int i = 0; i != e.Args.Length; ++i)
+            var top = 0.0;
+            var left = 0.0;
+            double hRes = 1280;
+            double vRes = 800;
+            
+            for (var i = 0; i != e.Args.Length; ++i)
             {
-                if (e.Args[i] == "/Top")
+                switch (e.Args[i].ToLower())
                 {
-                    top = Convert.ToDouble(e.Args[++i]);
-                }
-                else if (e.Args[i] == "/Left")
-                {
-                    left = Convert.ToDouble(e.Args[++i]);
-                }
-                else if (e.Args[i] == "/VRes")
-                {
-                    VRes = Convert.ToDouble(e.Args[++i]);
-                }
-                else if (e.Args[i] == "/HRes")
-                {
-                    HRes = Convert.ToDouble(e.Args[++i]);
+                    case "/top":
+                        top = Convert.ToDouble(e.Args[++i]);
+                        break;
+                    case "/left":
+                        left = Convert.ToDouble(e.Args[++i]);
+                        break;
+                    case "/vres":
+                        vRes = Convert.ToDouble(e.Args[++i]);
+                        break;
+                    case "/hres":
+                        hRes = Convert.ToDouble(e.Args[++i]);
+                        break;
                 }
             }
 
             //Set the globals
-            RippleCommonUtilities.Globals.CurrentResolution.VerticalResolution = VRes;
-            RippleCommonUtilities.Globals.CurrentResolution.HorizontalResolution = HRes;
-            RippleCommonUtilities.Globals.CurrentResolution.XOrigin = left;
-            RippleCommonUtilities.Globals.CurrentResolution.YOrigin = top;
+            Globals.CurrentResolution.VerticalResolution = vRes;
+            Globals.CurrentResolution.HorizontalResolution = hRes;
+            Globals.CurrentResolution.XOrigin = left;
+            Globals.CurrentResolution.YOrigin = top;
+
             // Create main application window
-            FloorWindow floorWin = new FloorWindow();
-            floorWin.Top = top;
-            floorWin.Left = left;
-            floorWin.Topmost = true;
-            floorWin.BorderThickness = new Thickness(0.2);
-            floorWin.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0072C6"));
-            floorWin.WindowStartupLocation = WindowStartupLocation.Manual;
-            floorWin.Width = HRes;
-            floorWin.Height = VRes;
-            //floorWin.Width = 800;
-            //floorWin.Height = 500;
-            floorWin.WindowState = WindowState.Maximized;
-            floorWin.WindowStyle = WindowStyle.None;
-            floorWin.ResizeMode = ResizeMode.NoResize;
+            var floorWin = new FloorWindow(new WindowsFormsHost())
+            {
+                Top = top,
+                Left = left,
+                Topmost = true,
+                BorderThickness = new Thickness(0.2),
+                BorderBrush = new SolidColorBrush((Color) ColorConverter.ConvertFromString("#0072C6")),
+                WindowStartupLocation = WindowStartupLocation.Manual,
+                Width = hRes,
+                Height = vRes,
+                WindowState = WindowState.Maximized,
+                WindowStyle = WindowStyle.None,
+                ResizeMode = ResizeMode.NoResize
+            };
+            
+
+#if DEBUG // we need a little bit more control when debugging
+            floorWin.WindowState = WindowState.Normal;
+            floorWin.WindowStyle = WindowStyle.SingleBorderWindow;
+            floorWin.ResizeMode = ResizeMode.CanResize;
+#endif
+
             floorWin.Show();
         }
 
         private void Application_Exit_1(object sender, ExitEventArgs e)
         {
             //Stop the logging session
-            RippleCommonUtilities.LoggingHelper.StopLogging();
+            LoggingHelper.StopLogging();
         }
 
-        private void Application_DispatcherUnhandledException_1(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        private void Application_DispatcherUnhandledException_1(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
             //Stop the logging session
-            RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in Floor {0}", e.Exception.Message);
+            LoggingHelper.LogTrace(1, "Something went wrong with the Floor : {0}", e.Exception.Message);
             //RippleCommonUtilities.LoggingHelper.StopLogging();
             e.Handled = true;
         }

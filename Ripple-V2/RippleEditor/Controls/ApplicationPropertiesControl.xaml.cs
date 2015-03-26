@@ -1,18 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using System.Windows.Forms;
+using RippleCommonUtilities;
+using RippleDictionary;
+using ComboBox = System.Windows.Controls.ComboBox;
+using HelperMethods = RippleEditor.Utilities.HelperMethods;
+using MessageBox = System.Windows.MessageBox;
+using UserControl = System.Windows.Controls.UserControl;
 
 namespace RippleEditor.Controls
 {
@@ -35,38 +31,38 @@ namespace RippleEditor.Controls
             try
             {
                 //Initialize floor animation types
-                this.CBAnimationTypeValue.Items.Clear();
-                foreach (var animType in Enum.GetNames(typeof(RippleDictionary.AnimationType)))
+                CBAnimationTypeValue.Items.Clear();
+                foreach (var animType in Enum.GetNames(typeof(AnimationType)))
                 {
-                    this.CBAnimationTypeValue.Items.Add(animType);
+                    CBAnimationTypeValue.Items.Add(animType);
                 }
-                this.CBAnimationTypeValue.SelectedValue = RippleDictionary.AnimationType.HTML.ToString();
+                CBAnimationTypeValue.SelectedValue = AnimationType.HTML.ToString();
 
                 //Initialize unlock modes
-                this.CBUnlockModeValue.Items.Clear();
-                foreach (var unMode in Enum.GetNames(typeof(RippleDictionary.Mode)))
+                CBUnlockModeValue.Items.Clear();
+                foreach (var unMode in Enum.GetNames(typeof(Mode)))
                 {
-                    this.CBUnlockModeValue.Items.Add(unMode);
+                    CBUnlockModeValue.Items.Add(unMode);
                 }
-                prevSelectedUnlockMode = RippleDictionary.Mode.Gesture.ToString();
-                this.CBUnlockModeValue.SelectedValue = RippleDictionary.Mode.Gesture.ToString();
+                prevSelectedUnlockMode = Mode.Gesture.ToString();
+                CBUnlockModeValue.SelectedValue = Mode.Gesture.ToString();
 
                 //Initialize gesture unlock types for gesture as the selected unlock mode
-                this.CBUnlockTypeValue.Items.Clear();
-                foreach (var unType in Enum.GetNames(typeof(RippleDictionary.GestureUnlockType)))
+                CBUnlockTypeValue.Items.Clear();
+                foreach (var unType in Enum.GetNames(typeof(GestureUnlockType)))
                 {
-                    this.CBUnlockTypeValue.Items.Add(unType);
+                    CBUnlockTypeValue.Items.Add(unType);
                 }
-                this.CBUnlockTypeValue.SelectedValue = RippleDictionary.GestureUnlockType.LeftSwipe.ToString();
+                CBUnlockTypeValue.SelectedValue = GestureUnlockType.LeftSwipe.ToString();
 
-                this.TBAnimationContentValue.Text = "";
-                this.TBLockScreenContentValue.Text = "";
-                this.TBAnimationContentValue.ToolTip = "";
-                this.TBLockScreenContentValue.ToolTip = "";
+                TBAnimationContentValue.Text = "";
+                TBLockScreenContentValue.Text = "";
+                TBAnimationContentValue.ToolTip = "";
+                TBLockScreenContentValue.ToolTip = "";
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in InitializeControls: {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in InitializeControls: {0}", ex.Message);
             }
         }
 
@@ -75,7 +71,7 @@ namespace RippleEditor.Controls
             try
             {
                 //Animation Content cannot be empty
-                String animationContent = TBAnimationContentValue.Text;
+                var animationContent = TBAnimationContentValue.Text;
                 if (String.IsNullOrEmpty(animationContent))
                 {
                     MessageBox.Show("Please enter valid value for Animation URI, as it is required in case of Animation Type = Flash / HTML");
@@ -84,7 +80,7 @@ namespace RippleEditor.Controls
 
                 //Validate the value for Animation content
                 //Web URI
-                if (this.CBAnimationTypeValue.SelectedValue.ToString().Equals("HTML") && animationContent.StartsWith("http"))
+                if (CBAnimationTypeValue.SelectedValue.ToString().Equals("HTML") && animationContent.StartsWith("http"))
                 {
                     //Do nothing - Valid
                     /*([\w-]+\.)+[\w-]+(/[\w- ./?%&=]*)?*/
@@ -92,7 +88,7 @@ namespace RippleEditor.Controls
                 else
                 {
                     //Local HTML URI
-                    if (this.CBAnimationTypeValue.SelectedValue.ToString().Equals(RippleDictionary.AnimationType.HTML.ToString()) && !(animationContent.EndsWith(".htm") || animationContent.EndsWith(".html")))
+                    if (CBAnimationTypeValue.SelectedValue.ToString().Equals(AnimationType.HTML.ToString()) && !(animationContent.EndsWith(".htm") || animationContent.EndsWith(".html")))
                     {
                         MessageBox.Show("Please enter valid value for HTML based URI, it should have an extension html or htm for local files, for web hosted files it should start with http");
                         return false;
@@ -106,7 +102,7 @@ namespace RippleEditor.Controls
                 }
 
                 //Lock Screen Content cannot be empty
-                if (String.IsNullOrEmpty(this.TBLockScreenContentValue.Text))
+                if (String.IsNullOrEmpty(TBLockScreenContentValue.Text))
                 {
                     MessageBox.Show("Please enter valid value for Lock Screen Content URI, as it is required");
                     return false;
@@ -116,7 +112,7 @@ namespace RippleEditor.Controls
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in ValidateControl: {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in ValidateControl: {0}", ex.Message);
                 return false;
             }
         }
@@ -126,28 +122,28 @@ namespace RippleEditor.Controls
             try
             {
                 //Animation type
-                MainPage.rippleData.Floor.Start.Animation.AnimType = (RippleDictionary.AnimationType)this.CBAnimationTypeValue.SelectedIndex;
+                MainPage.rippleData.Floor.Start.Animation.AnimType = (AnimationType)CBAnimationTypeValue.SelectedIndex;
 
                 //Unlock Mode
-                MainPage.rippleData.Floor.Start.Unlock.Mode = (RippleDictionary.Mode)this.CBUnlockModeValue.SelectedIndex;
+                MainPage.rippleData.Floor.Start.Unlock.Mode = (Mode)CBUnlockModeValue.SelectedIndex;
 
                 //Animation content
-                MainPage.rippleData.Floor.Start.Animation.Content = this.TBAnimationContentValue.Text;
+                MainPage.rippleData.Floor.Start.Animation.Content = TBAnimationContentValue.Text;
 
                 //Lock screen content
-                MainPage.rippleData.Screen.ScreenContents["LockScreen"].Content = this.TBLockScreenContentValue.Text;
+                MainPage.rippleData.Screen.ScreenContents["LockScreen"].Content = TBLockScreenContentValue.Text;
 
                 try
                 {
                     //Unlock type
-                    MainPage.rippleData.Floor.Start.Unlock.UnlockType = this.CBUnlockTypeValue.SelectedValue.ToString();
+                    MainPage.rippleData.Floor.Start.Unlock.UnlockType = CBUnlockTypeValue.SelectedValue.ToString();
                 }
                 catch(Exception)
                 {}
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in SaveApplicationProperties: {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in SaveApplicationProperties: {0}", ex.Message);
             }           
         }
 
@@ -156,30 +152,30 @@ namespace RippleEditor.Controls
             try
             {
                 //Set the Animation Type
-                this.CBAnimationTypeValue.SelectedValue = MainPage.rippleData.Floor.Start.Animation.AnimType.ToString();
+                CBAnimationTypeValue.SelectedValue = MainPage.rippleData.Floor.Start.Animation.AnimType.ToString();
 
                 //Set the Unlock Mode
-                this.CBUnlockModeValue.SelectedValue = MainPage.rippleData.Floor.Start.Unlock.Mode.ToString();
-                this.CBUnlockModeValue.SelectedValue = MainPage.rippleData.Floor.Start.Unlock.Mode.ToString();
+                CBUnlockModeValue.SelectedValue = MainPage.rippleData.Floor.Start.Unlock.Mode.ToString();
+                CBUnlockModeValue.SelectedValue = MainPage.rippleData.Floor.Start.Unlock.Mode.ToString();
 
                 //Set the Unlock Type
-                this.CBUnlockTypeValue.SelectedValue = MainPage.rippleData.Floor.Start.Unlock.UnlockType.ToString();
+                CBUnlockTypeValue.SelectedValue = MainPage.rippleData.Floor.Start.Unlock.UnlockType.ToString();
 
                 //Set the Animation content
                 if (!MainPage.rippleData.Floor.Start.Animation.Content.StartsWith(@"\Assets\"))
-                    this.TBAnimationContentValue.Text = MainPage.rippleData.Floor.Start.Animation.Content;
+                    TBAnimationContentValue.Text = MainPage.rippleData.Floor.Start.Animation.Content;
                 else
-                    this.TBAnimationContentValue.Text = Utilities.HelperMethods.TargetAssetsRoot + MainPage.rippleData.Floor.Start.Animation.Content;
+                    TBAnimationContentValue.Text = HelperMethods.TargetAssetsRoot + MainPage.rippleData.Floor.Start.Animation.Content;
 
                 //Set the Lock Screen content
                 if (!MainPage.rippleData.Screen.ScreenContents["LockScreen"].Content.StartsWith(@"\Assets\"))
-                    this.TBLockScreenContentValue.Text = MainPage.rippleData.Screen.ScreenContents["LockScreen"].Content;
+                    TBLockScreenContentValue.Text = MainPage.rippleData.Screen.ScreenContents["LockScreen"].Content;
                 else
-                    this.TBLockScreenContentValue.Text = Utilities.HelperMethods.TargetAssetsRoot + MainPage.rippleData.Screen.ScreenContents["LockScreen"].Content;
+                    TBLockScreenContentValue.Text = HelperMethods.TargetAssetsRoot + MainPage.rippleData.Screen.ScreenContents["LockScreen"].Content;
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in SetApplicationProperties: {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in SetApplicationProperties: {0}", ex.Message);
             }
         } 
         #endregion
@@ -212,33 +208,33 @@ namespace RippleEditor.Controls
                 //    }
                 //}
                 //else 
-                if (this.CBAnimationTypeValue.SelectedValue == RippleDictionary.AnimationType.HTML.ToString())
+                if (CBAnimationTypeValue.SelectedValue == AnimationType.HTML.ToString())
                 {
                     //Opportunity to browse for Animation files
-                    System.Windows.Forms.OpenFileDialog dlgBox = new System.Windows.Forms.OpenFileDialog();
+                    var dlgBox = new OpenFileDialog();
                     dlgBox.Filter = "HTML files(*.html;*.htm;)|*.html;*.htm;";
                     var res = dlgBox.ShowDialog();
-                    if (res == System.Windows.Forms.DialogResult.OK)
+                    if (res == DialogResult.OK)
                     {
-                        String updatedFileName = dlgBox.FileName;
-                        String targetfolder = Utilities.HelperMethods.CopyFolder(System.IO.Path.GetDirectoryName(updatedFileName), Utilities.HelperMethods.TargetAssetsDirectory + "\\Animations");
-                        updatedFileName = targetfolder + "\\" + System.IO.Path.GetFileName(updatedFileName);
+                        var updatedFileName = dlgBox.FileName;
+                        var targetfolder = HelperMethods.CopyFolder(Path.GetDirectoryName(updatedFileName), HelperMethods.TargetAssetsDirectory + "\\Animations");
+                        updatedFileName = targetfolder + "\\" + Path.GetFileName(updatedFileName);
                         if (!String.IsNullOrEmpty(updatedFileName))
                         {
-                            this.TBAnimationContentValue.Text = updatedFileName;
-                            this.TBAnimationContentValue.ToolTip = updatedFileName;
+                            TBAnimationContentValue.Text = updatedFileName;
+                            TBAnimationContentValue.ToolTip = updatedFileName;
                         }
                         else
                         {
-                            this.TBAnimationContentValue.Text = "";
-                            this.TBAnimationContentValue.ToolTip = "";
+                            TBAnimationContentValue.Text = "";
+                            TBAnimationContentValue.ToolTip = "";
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in AnimationContentBrowseButton_Click: {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in AnimationContentBrowseButton_Click: {0}", ex.Message);
             }
         }
 
@@ -248,35 +244,35 @@ namespace RippleEditor.Controls
             try
             {
                 //Opportunity to browse for content files
-                System.Windows.Forms.OpenFileDialog dlgBox = new System.Windows.Forms.OpenFileDialog();
+                var dlgBox = new OpenFileDialog();
                 dlgBox.Filter = "Media Files(*.mp4;*.wmv;*.jpeg;*.png;*.jpg;*.bmp;)|*.mp4;*.wmv;*.jpeg;*.png;*.jpg;*.bmp;|Videos(*.mp4;*.wmv;)|*.mp4;*.wmv;|Images(*.jpeg;*.png;*.jpg;*.bmp;)|*.jpeg;*.png;*.jpg;*.bmp;";
 
                 var res = dlgBox.ShowDialog();
-                if (res == System.Windows.Forms.DialogResult.OK)
+                if (res == DialogResult.OK)
                 {
-                    String targetFolder = Utilities.HelperMethods.TargetAssetsDirectory;
-                    String fileExt = System.IO.Path.GetExtension(dlgBox.FileName).ToLower();
+                    var targetFolder = HelperMethods.TargetAssetsDirectory;
+                    var fileExt = Path.GetExtension(dlgBox.FileName).ToLower();
                     if (fileExt.Equals(".mp4") || fileExt.Equals(".wmv"))
                         targetFolder += "\\Videos";
                     else
                         targetFolder += "\\Images";
                     //Get the complete fileName
-                    String updatedFileName = Utilities.HelperMethods.CopyFile(dlgBox.FileName, targetFolder);
+                    var updatedFileName = HelperMethods.CopyFile(dlgBox.FileName, targetFolder);
                     if (!String.IsNullOrEmpty(updatedFileName))
                     {
-                        this.TBLockScreenContentValue.Text = updatedFileName;
-                        this.TBLockScreenContentValue.ToolTip = updatedFileName;
+                        TBLockScreenContentValue.Text = updatedFileName;
+                        TBLockScreenContentValue.ToolTip = updatedFileName;
                     }
                     else
                     {
-                        this.TBLockScreenContentValue.Text = "";
-                        this.TBLockScreenContentValue.ToolTip = "";
+                        TBLockScreenContentValue.Text = "";
+                        TBLockScreenContentValue.ToolTip = "";
                     }
                 }
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in LockScreenContentBrowseButton_Click: {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in LockScreenContentBrowseButton_Click: {0}", ex.Message);
             }
         }
 
@@ -289,35 +285,35 @@ namespace RippleEditor.Controls
         {
             try
             {
-                ComboBox cb = sender as ComboBox;
+                var cb = sender as ComboBox;
                 if (cb.SelectedValue == null)
                     return;
 
                 //Gesture selected
-                if (cb.SelectedValue.ToString() == RippleDictionary.Mode.Gesture.ToString())
+                if (cb.SelectedValue.ToString() == Mode.Gesture.ToString())
                 {
-                    string g = this.CBUnlockModeValue.SelectedValue.ToString();
+                    var g = CBUnlockModeValue.SelectedValue.ToString();
                     //Get the previously selected unlock mode
-                    prevSelectedUnlockMode = this.CBUnlockModeValue.SelectedValue.ToString();
+                    prevSelectedUnlockMode = CBUnlockModeValue.SelectedValue.ToString();
 
                     //Set the unlock types as gesture types - select Right Swipe as default
-                    this.CBUnlockTypeValue.Items.Clear();
-                    foreach (var unType in Enum.GetNames(typeof(RippleDictionary.GestureUnlockType)))
+                    CBUnlockTypeValue.Items.Clear();
+                    foreach (var unType in Enum.GetNames(typeof(GestureUnlockType)))
                     {
-                        this.CBUnlockTypeValue.Items.Add(unType);
+                        CBUnlockTypeValue.Items.Add(unType);
                     }
-                    this.CBUnlockTypeValue.SelectedValue = RippleDictionary.GestureUnlockType.RightSwipe.ToString();
+                    CBUnlockTypeValue.SelectedValue = GestureUnlockType.RightSwipe.ToString();
                 }
                 //Animation Selected
-                else if (cb.SelectedValue.ToString() == RippleDictionary.Mode.HTML.ToString())
+                else if (cb.SelectedValue.ToString() == Mode.HTML.ToString())
                 {
                     //Get the previously selected unlock mode
-                    prevSelectedUnlockMode = this.CBUnlockModeValue.SelectedValue.ToString();
+                    prevSelectedUnlockMode = CBUnlockModeValue.SelectedValue.ToString();
 
                     //Set the unlock types as HTMl invoke
-                    this.CBUnlockTypeValue.Items.Clear();
-                    this.CBUnlockTypeValue.Items.Add("HTMLInvoke");
-                    this.CBUnlockTypeValue.SelectedValue = "HTMLInvoke";
+                    CBUnlockTypeValue.Items.Clear();
+                    CBUnlockTypeValue.Items.Add("HTMLInvoke");
+                    CBUnlockTypeValue.SelectedValue = "HTMLInvoke";
                 }
                 else
                 {
@@ -327,7 +323,7 @@ namespace RippleEditor.Controls
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in CBUnlockModeValue_SelectionChanged: {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in CBUnlockModeValue_SelectionChanged: {0}", ex.Message);
             }
         }
 
@@ -350,7 +346,7 @@ namespace RippleEditor.Controls
         {
             try
             {
-                ComboBox cb = sender as ComboBox;
+                var cb = sender as ComboBox;
                 if (cb.SelectedValue == null)
                     return;
 
@@ -372,26 +368,26 @@ namespace RippleEditor.Controls
                 //    this.TBAnimationContentValue.ToolTip = "";
                 //}
                 //else 
-                if (cb.SelectedValue.ToString() == RippleDictionary.AnimationType.HTML.ToString())
+                if (cb.SelectedValue.ToString() == AnimationType.HTML.ToString())
                 {
                     //Set unlock mode as Animation - default
-                    this.CBUnlockModeValue.SelectedValue = RippleDictionary.Mode.HTML.ToString();
+                    CBUnlockModeValue.SelectedValue = Mode.HTML.ToString();
 
                     //Set Unlock type as fixed HTML invoke value
-                    this.CBUnlockTypeValue.Items.Clear();
-                    this.CBUnlockTypeValue.Items.Add("HTMLInvoke");
+                    CBUnlockTypeValue.Items.Clear();
+                    CBUnlockTypeValue.Items.Add("HTMLInvoke");
 
-                    this.CBUnlockTypeValue.SelectedValue = "HTMLInvoke";
+                    CBUnlockTypeValue.SelectedValue = "HTMLInvoke";
 
                     //Clear the animation content selected
-                    this.TBAnimationContentValue.Text = "";
-                    this.TBAnimationContentValue.ToolTip = "";
+                    TBAnimationContentValue.Text = "";
+                    TBAnimationContentValue.ToolTip = "";
                 }
 
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in CBAnimationTypeValue_SelectionChanged: {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in CBAnimationTypeValue_SelectionChanged: {0}", ex.Message);
             }            
         } 
         #endregion

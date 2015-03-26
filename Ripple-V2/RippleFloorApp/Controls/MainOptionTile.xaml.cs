@@ -1,17 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using RippleCommonUtilities;
 
 namespace RippleFloorApp.Controls
 {
@@ -23,25 +12,25 @@ namespace RippleFloorApp.Controls
         public MainOptionTile(FloorWindow floorInstance)
         {
             InitializeComponent();
-            floorInstance.RegisterName(this.MainOptionGrid.Name, this.MainOptionGrid);
-            floorInstance.RegisterName(this.MainOptionGridLabel.Name, this.MainOptionGridLabel);
+            floorInstance.RegisterName(MainOptionGrid.Name, MainOptionGrid);
+            floorInstance.RegisterName(MainOptionGridLabel.Name, MainOptionGridLabel);
         }
 
         public double ControlWidth
         {
-            set { this.Height = value * RippleCommonUtilities.Globals.CurrentResolution.VerticalResolution; }
+            set { Height = value * Globals.CurrentResolution.VerticalResolution; }
         }
 
         public double ControlHeight
         {
-            set { this.Width = value * RippleCommonUtilities.Globals.CurrentResolution.HorizontalResolution; }
+            set { Width = value * Globals.CurrentResolution.HorizontalResolution; }
         }
 
         public void SetMargin(double left, double top)
         {
-            this.HorizontalAlignment = System.Windows.HorizontalAlignment.Left;
-            this.VerticalAlignment = System.Windows.VerticalAlignment.Top;
-            this.Margin = new Thickness(left * RippleCommonUtilities.Globals.CurrentResolution.HorizontalResolution,0,0,0);
+            HorizontalAlignment = HorizontalAlignment.Left;
+            VerticalAlignment = VerticalAlignment.Top;
+            Margin = new Thickness(left * Globals.CurrentResolution.HorizontalResolution,0,0,0);
         }
 
     }

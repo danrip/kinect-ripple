@@ -1,21 +1,26 @@
-﻿using RippleDictionary;
+﻿using System.Configuration;
+using System.Reflection;
+using System.Windows.Forms;
+using System.Windows.Forms.Integration;
+using RippleCommonUtilities;
+using RippleDictionary;
 using RippleEditor.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using Button = System.Windows.Controls.Button;
+using Globals = RippleEditor.Utilities.Globals;
+using HelperMethods = RippleEditor.Utilities.HelperMethods;
+using MessageBox = System.Windows.MessageBox;
+using RippleSystemStates = RippleEditor.Utilities.RippleSystemStates;
+using Style = System.Windows.Style;
 using TUC = RippleEditor.Utilities.TileControl;
+using WebBrowser = System.Windows.Forms.WebBrowser;
 
 namespace RippleEditor
 {
@@ -24,20 +29,20 @@ namespace RippleEditor
     /// </summary>
     public partial class MainPage : Window
     {
-        public static RippleDictionary.Ripple rippleData;
+        public static Ripple rippleData;
         private List<TUC> tileList = null;
-        private Utilities.UpperVideoControl UpperVideoContentGrid = null;
-        private static Utilities.MainOptionTile mainOptionGrid;
-        private RippleDictionary.Tile prevSelectedTile = null;
+        private UpperVideoControl UpperVideoContentGrid = null;
+        private static MainOptionTile mainOptionGrid;
+        private Tile prevSelectedTile = null;
 
-        private static RippleDictionary.ContentType currentScreenContent = ContentType.Nothing;
+        private static ContentType currentScreenContent = ContentType.Nothing;
         private static String currentVideoURI = String.Empty;
         private static TextBlock tbElement = new TextBlock();
         private static TextBlock fullScreenTbElement = new TextBlock();
         private static Image imgElement = new Image();
         private static Image fullScreenImgElement = new Image();
-        public System.Windows.Forms.Integration.WindowsFormsHost host;
-        public System.Windows.Forms.WebBrowser browserElement;
+        public WindowsFormsHost host;
+        public WebBrowser browserElement;
         public const string InnerContent = "InnerContent";
         public const string InnerTile = "InnerTile";
         public const string Label = "Label";
@@ -48,13 +53,13 @@ namespace RippleEditor
             {
                 InitializeComponent();
 
-                this.MenuBar.Width = SystemParameters.PrimaryScreenWidth;
+                MenuBar.Width = SystemParameters.PrimaryScreenWidth;
 
-                String fileLocation = System.Configuration.ConfigurationManager.AppSettings["LogFileLocation"];
+                var fileLocation = ConfigurationManager.AppSettings["LogFileLocation"];
                 if (String.IsNullOrEmpty(fileLocation))
-                    RippleCommonUtilities.LoggingHelper.StartLogging("RippleEditor");
+                    LoggingHelper.StartLogging("RippleEditor");
                 else
-                    RippleCommonUtilities.LoggingHelper.StartLogging("RippleEditor", fileLocation);
+                    LoggingHelper.StartLogging("RippleEditor", fileLocation);
 
                 InitializeScreenPreviewControls();
 
@@ -62,7 +67,7 @@ namespace RippleEditor
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in Constructor: {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in Constructor: {0}", ex.Message);
             }
         }
 
@@ -76,16 +81,16 @@ namespace RippleEditor
                 //Set text block properties
                 tbElement.FontSize = 15;
                 tbElement.Margin = new Thickness(20, 0, 20, 0);
-                tbElement.VerticalAlignment = System.Windows.VerticalAlignment.Center;
+                tbElement.VerticalAlignment = VerticalAlignment.Center;
                 tbElement.TextWrapping = TextWrapping.Wrap;
                 fullScreenTbElement.FontSize = 15;
                 fullScreenTbElement.Margin = new Thickness(20, 0, 20, 0);
-                fullScreenTbElement.VerticalAlignment = System.Windows.VerticalAlignment.Center;
+                fullScreenTbElement.VerticalAlignment = VerticalAlignment.Center;
                 fullScreenTbElement.TextWrapping = TextWrapping.Wrap;
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in InitializeScreenPreviewControls: {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in InitializeScreenPreviewControls: {0}", ex.Message);
             }
         }
 
@@ -94,22 +99,22 @@ namespace RippleEditor
             try
             {
                 //Hide the properties windows after resetting them
-                this.AppPropControl.Visibility = System.Windows.Visibility.Collapsed;
-                this.AppPropControl.InitializeControls();
-                this.FloorPropControl.Visibility = System.Windows.Visibility.Collapsed;
-                this.FloorPropControl.InitializeControls();
-                this.ScreenPropControl.Visibility = System.Windows.Visibility.Collapsed;
-                this.ScreenPropControl.InitializeControls();
+                AppPropControl.Visibility = Visibility.Collapsed;
+                AppPropControl.InitializeControls();
+                FloorPropControl.Visibility = Visibility.Collapsed;
+                FloorPropControl.InitializeControls();
+                ScreenPropControl.Visibility = Visibility.Collapsed;
+                ScreenPropControl.InitializeControls();
 
-                this.DefaultView.Visibility = System.Windows.Visibility.Visible;
+                DefaultView.Visibility = Visibility.Visible;
 
                 //Reset the screen preview
-                this.ScreenUI.Visibility = Visibility.Collapsed;
-                this.PlainScreen.Visibility = System.Windows.Visibility.Visible;
-                this.ScreenPreviewLabel.Visibility = System.Windows.Visibility.Collapsed;
-                this.RefreshButton.Visibility = System.Windows.Visibility.Collapsed;
+                ScreenUI.Visibility = Visibility.Collapsed;
+                PlainScreen.Visibility = Visibility.Visible;
+                ScreenPreviewLabel.Visibility = Visibility.Collapsed;
+                RefreshButton.Visibility = Visibility.Collapsed;
 
-                Utilities.Globals.ResetGlobals();
+                Globals.ResetGlobals();
 
                 UnregisterNames();
 
@@ -118,7 +123,7 @@ namespace RippleEditor
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in ResetUI: {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in ResetUI: {0}", ex.Message);
             }
         }
 
@@ -126,7 +131,7 @@ namespace RippleEditor
         private void NewFile_Click(object sender, RoutedEventArgs e)
         {
             //Check whether anything is open right now
-            if (Utilities.Globals.IsProjectOpen)
+            if (Globals.IsProjectOpen)
             {
                 if (!SaveExistingProject())
                     return;
@@ -134,18 +139,18 @@ namespace RippleEditor
             }
 
             //Which type of template to select
-            Utilities.NewTemplateSelectorBox customBox = new Utilities.NewTemplateSelectorBox();
-            bool resNew = Convert.ToBoolean(customBox.ShowDialog());
+            var customBox = new NewTemplateSelectorBox();
+            var resNew = Convert.ToBoolean(customBox.ShowDialog());
             if (resNew)
             {
                 //Get the selected template
-                Utilities.Globals.CurrentTemplate = customBox.SelectedItem;
-                Utilities.Globals.CurrentFileLocation = GetRippleXMLFileLocation();
-                Utilities.Globals.IsProjectOpen = true;
+                Globals.CurrentTemplate = customBox.SelectedItem;
+                Globals.CurrentFileLocation = GetRippleXMLFileLocation();
+                Globals.IsProjectOpen = true;
                 //Get the basic XML for the selected template
-                String xmlFilePath = Utilities.HelperMethods.GetXMLFileForTemplate(Utilities.Globals.CurrentTemplate);
+                var xmlFilePath = HelperMethods.GetXMLFileForTemplate(Globals.CurrentTemplate);
                 //Get the basic object for the given XML
-                rippleData = RippleDictionary.Dictionary.GetRippleDictionaryFromFile(xmlFilePath);
+                rippleData = Dictionary.GetRippleDictionaryFromFile(xmlFilePath);
                 //Render the UI
                 ArrangeFloor();
 
@@ -165,7 +170,7 @@ namespace RippleEditor
                     //Verify the assets and make all the paths relative in the XML
                     VerifyAssetPaths();
 
-                    if (!RippleDictionary.RippleXMLWriter.TryWriteToXML(rippleData, Utilities.Globals.CurrentFileLocation))
+                    if (!RippleXMLWriter.TryWriteToXML(rippleData, Globals.CurrentFileLocation))
                     {
                         MessageBox.Show("Please try again, it failed");
                         return false;
@@ -179,7 +184,7 @@ namespace RippleEditor
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in SaveExistingProject: {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in SaveExistingProject: {0}", ex.Message);
                 return false;
             }
         }
@@ -251,20 +256,20 @@ namespace RippleEditor
                     }
                     //Validate corresponding screen content type - applicable only for tiles
                     if (sc.Id.StartsWith("Tile"))
-                        Utilities.HelperMethods.GetFloorTileForID(sc.Id).CorrespondingScreenContentType = sc.Type;
+                        HelperMethods.GetFloorTileForID(sc.Id).CorrespondingScreenContentType = sc.Type;
                 }
 
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in VerifyAssetPaths: {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in VerifyAssetPaths: {0}", ex.Message);
             }
         }
 
         private void SaveFile_Click(object sender, RoutedEventArgs e)
         {
             //Check whether anything is open right now
-            if (Utilities.Globals.IsProjectOpen)
+            if (Globals.IsProjectOpen)
             {
                 SaveExistingProject();
             }
@@ -275,7 +280,7 @@ namespace RippleEditor
             try
             {
                 //Check whether anything is open right now
-                if (Utilities.Globals.IsProjectOpen)
+                if (Globals.IsProjectOpen)
                 {
                     if (!SaveExistingProject())
                         return;
@@ -284,20 +289,20 @@ namespace RippleEditor
 
                 //Open a browse dialog box to select xml, validate the xml
                 //Opportunity to browse for content files
-                System.Windows.Forms.OpenFileDialog dlgBox = new System.Windows.Forms.OpenFileDialog();
+                var dlgBox = new OpenFileDialog();
                 dlgBox.Filter = "XML Files(*.xml)|*.xml";
                 var res = dlgBox.ShowDialog();
                 if (res == System.Windows.Forms.DialogResult.OK)
                 {
-                    Utilities.Globals.CurrentFileLocation = dlgBox.FileName;
-                    Utilities.Globals.IsProjectOpen = true;
+                    Globals.CurrentFileLocation = dlgBox.FileName;
+                    Globals.IsProjectOpen = true;
                     //Get the basic XML for the selected template
-                    String xmlFilePath = Globals.CurrentFileLocation;
+                    var xmlFilePath = Globals.CurrentFileLocation;
 
                     try
                     {
                         //Get the basic object for the given XML
-                        rippleData = RippleDictionary.Dictionary.GetRippleDictionaryFromFile(xmlFilePath);
+                        rippleData = Dictionary.GetRippleDictionaryFromFile(xmlFilePath);
 
                         if (rippleData != null)
                             ArrangeFloor();
@@ -310,21 +315,21 @@ namespace RippleEditor
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in OpenFile_Click: {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in OpenFile_Click: {0}", ex.Message);
             }
         }
 
         private void Exit_Click(object sender, RoutedEventArgs e)
         {
             //Check whether anything is open right now
-            if (Utilities.Globals.IsProjectOpen)
+            if (Globals.IsProjectOpen)
             {
                 if (!SaveExistingProject())
                     return;
             }
 
             //Directly exit
-            this.Close();
+            Close();
         }
 
         private void AboutUs_Click(object sender, RoutedEventArgs e)
@@ -341,7 +346,7 @@ namespace RippleEditor
         {
             try
             {
-                this.MainContainer.Children.Clear();
+                MainContainer.Children.Clear();
 
                 if (UpperVideoContentGrid != null)
                 {
@@ -365,11 +370,11 @@ namespace RippleEditor
                     mainOptionGrid = null;
                 }
 
-                this.UpdateLayout();
+                UpdateLayout();
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in Unregister Names {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in Unregister Names {0}", ex.Message);
             }
         }
 
@@ -380,8 +385,8 @@ namespace RippleEditor
         {
             try
             {
-                this.MainContainer.Children.Clear();
-                Dictionary<String, RippleDictionary.Tile> inputDictionary = null;
+                MainContainer.Children.Clear();
+                Dictionary<String, Tile> inputDictionary = null;
 
                 CopyDefaultAssets();
 
@@ -391,7 +396,7 @@ namespace RippleEditor
                 //Add the upper tile
                 TUC nTile;
                 //Upper tile properties
-                UpperVideoContentGrid = new Utilities.UpperVideoControl(this);
+                UpperVideoContentGrid = new UpperVideoControl(this);
                 UpperVideoContentGrid.ControlWidth = rippleData.Floor.UpperTile.Style.Width;
                 UpperVideoContentGrid.ControlHeight = rippleData.Floor.UpperTile.Style.Height;
                 UpperVideoContentGrid.SetMargin(rippleData.Floor.UpperTile.Coordinate.X, rippleData.Floor.UpperTile.Coordinate.Y);
@@ -414,7 +419,7 @@ namespace RippleEditor
                 }
 
                 //Main Option grid properties
-                mainOptionGrid = new Utilities.MainOptionTile(this);
+                mainOptionGrid = new MainOptionTile(this);
                 mainOptionGrid.SetMargin(rippleData.Floor.Tiles["Tile0"].Coordinate.Y, rippleData.Floor.Tiles["Tile0"].Style.Height);
                 mainOptionGrid.ControlWidth = rippleData.Floor.UpperTile.Style.Width;
                 mainOptionGrid.ControlHeight = rippleData.Floor.UpperTile.Style.Height;
@@ -424,39 +429,39 @@ namespace RippleEditor
                 //overlayImage.SetMargin(rippleData.Floor.Tiles["Tile0"].Style.Height);
 
                 //Add upper video tile to the main UI
-                this.MainContainer.Children.Add(UpperVideoContentGrid);
+                MainContainer.Children.Add(UpperVideoContentGrid);
 
                 //Add the tile list to the main UI
                 foreach (var tile in tileList)
                 {
-                    this.MainContainer.Children.Add(tile);
+                    MainContainer.Children.Add(tile);
                 }
 
                 //Add the Main Option grid to the Main UI
-                this.MainContainer.Children.Add(mainOptionGrid);
+                MainContainer.Children.Add(mainOptionGrid);
 
                 //Add the overlay image
                 //this.MainContainer.Children.Add(overlayImage);
 
                 //Show application properties
-                this.AppPropControl.SetApplicationProperties();
-                this.AppPropControl.Visibility = System.Windows.Visibility.Visible;
-                this.ScreenPreviewLabel.Visibility = System.Windows.Visibility.Visible;
-                this.RefreshButton.Visibility = System.Windows.Visibility.Visible;
-                this.DefaultView.Visibility = System.Windows.Visibility.Collapsed;
+                AppPropControl.SetApplicationProperties();
+                AppPropControl.Visibility = Visibility.Visible;
+                ScreenPreviewLabel.Visibility = Visibility.Visible;
+                RefreshButton.Visibility = Visibility.Visible;
+                DefaultView.Visibility = Visibility.Collapsed;
 
                 //Set the globals
                 Globals.CurrentlySelectedParent = 0;
                 Globals.currentAppState = RippleSystemStates.Start;
                 ResetColorsForMainOption(0);
 
-                this.PromptBlock.Text = "";
+                PromptBlock.Text = "";
 
-                this.UpdateLayout();
+                UpdateLayout();
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Could not layout the floor, went wrong in ArrangeFloor {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Could not layout the floor, went wrong in ArrangeFloor {0}", ex.Message);
             }
 
         }
@@ -485,7 +490,7 @@ namespace RippleEditor
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in CopyDefaultAssets: {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in CopyDefaultAssets: {0}", ex.Message);
             }
         }
 
@@ -499,13 +504,13 @@ namespace RippleEditor
             try
             {
                 //Get the tile ID
-                String TileID = (sender as Button).Name;
+                var TileID = (sender as Button).Name;
                 TileID = TileID.Substring(0, TileID.LastIndexOf("Button"));
                 OnTileSelected(TileID);
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in Tile Click for TileID {0}: {1}", (sender as Button).Name, ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in Tile Click for TileID {0}: {1}", (sender as Button).Name, ex.Message);
             }
         }
 
@@ -513,36 +518,36 @@ namespace RippleEditor
         {
             if (Globals.currentAppState == RippleSystemStates.ActionContent && (!TileID.Equals("Tile0")))
             {
-                this.PromptBlock.Text = "Please click on Start to get to the main options";
+                PromptBlock.Text = "Please click on Start to get to the main options";
             }
             else
             {
-                this.PromptBlock.Text = "";
+                PromptBlock.Text = "";
                 OnSelectedBox(Convert.ToInt16(TileID.Substring(TileID.LastIndexOf("Tile") + 4)));
             }
         }
 
-        private bool ShowPropertiesForGivenTile(RippleDictionary.Tile iTile)
+        private bool ShowPropertiesForGivenTile(Tile iTile)
         {
             try
             {
                 //Save the existing after validation
-                if (prevSelectedTile != null && this.AppPropControl.ValidateControl() && this.FloorPropControl.ValidateControl() && this.ScreenPropControl.ValidateControl())
+                if (prevSelectedTile != null && AppPropControl.ValidateControl() && FloorPropControl.ValidateControl() && ScreenPropControl.ValidateControl())
                 {
-                    this.ScreenPropControl.SaveScreenProperties(prevSelectedTile);
-                    this.FloorPropControl.SaveFloorProperties(prevSelectedTile);
-                    this.AppPropControl.SaveApplicationProperties();
+                    ScreenPropControl.SaveScreenProperties(prevSelectedTile);
+                    FloorPropControl.SaveFloorProperties(prevSelectedTile);
+                    AppPropControl.SaveApplicationProperties();
 
-                    this.AppPropControl.SetApplicationProperties();
-                    this.ScreenPropControl.SetScreenProperties(iTile);
-                    this.FloorPropControl.SetFloorProperties(iTile);
+                    AppPropControl.SetApplicationProperties();
+                    ScreenPropControl.SetScreenProperties(iTile);
+                    FloorPropControl.SetFloorProperties(iTile);
                     prevSelectedTile = iTile;
                 }
                 else if (prevSelectedTile == null)
                 {
-                    this.AppPropControl.SetApplicationProperties();
-                    this.ScreenPropControl.SetScreenProperties(iTile);
-                    this.FloorPropControl.SetFloorProperties(iTile);
+                    AppPropControl.SetApplicationProperties();
+                    ScreenPropControl.SetScreenProperties(iTile);
+                    FloorPropControl.SetFloorProperties(iTile);
                     prevSelectedTile = iTile;
                 }
                 else
@@ -551,15 +556,15 @@ namespace RippleEditor
                     return false;
                 }
 
-                this.AppPropControl.Visibility = System.Windows.Visibility.Visible;
-                this.FloorPropControl.Visibility = System.Windows.Visibility.Visible;
-                this.ScreenPropControl.Visibility = System.Windows.Visibility.Visible;
+                AppPropControl.Visibility = Visibility.Visible;
+                FloorPropControl.Visibility = Visibility.Visible;
+                ScreenPropControl.Visibility = Visibility.Visible;
                 ShowContentPreview(iTile.Id);
                 return true;
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in ShowProperties for Tile {0} : {1}", iTile.Id, ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in ShowProperties for Tile {0} : {1}", iTile.Id, ex.Message);
                 return false;
             }
         }
@@ -587,7 +592,7 @@ namespace RippleEditor
             catch (Exception ex)
             {
                 //Do nothing
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in on selected box {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in on selected box {0}", ex.Message);
             }
         }
 
@@ -648,8 +653,8 @@ namespace RippleEditor
                         //Layout the options
                         LayoutTiles(BoxNumber);
                         //Show the main grid
-                        ((Grid)this.FindName("MainOptionGrid")).Visibility = Visibility.Visible;
-                        ((TextBlock)this.FindName("MainOptionGridLabel")).Text = rippleData.Floor.Tiles[tileID].Name;
+                        ((Grid)FindName("MainOptionGrid")).Visibility = Visibility.Visible;
+                        ((TextBlock)FindName("MainOptionGridLabel")).Text = rippleData.Floor.Tiles[tileID].Name;
                         ProcessTileActionForQRCode(rippleData.Floor.Tiles[tileID].ActionURI);
                     }
                     else if (action == TileAction.Nothing || action == TileAction.NothingOnFloor)
@@ -659,13 +664,13 @@ namespace RippleEditor
                         Globals.currentAppState = RippleSystemStates.Start;
                     }
 
-                    this.UpdateLayout();
+                    UpdateLayout();
                 }
 
                 //User selected Sub Option
                 else if (Globals.currentAppState == RippleSystemStates.OptionSelected)
                 {
-                    String parentTileID = "Tile" + Globals.CurrentlySelectedParent;
+                    var parentTileID = "Tile" + Globals.CurrentlySelectedParent;
                     tileID = "Tile" + Globals.CurrentlySelectedParent + "SubTile" + BoxNumber;
                     action = rippleData.Floor.Tiles[parentTileID].SubTiles[tileID].Action;
                     //Globals.currentAppState = RippleSystemStates.SubOptionSelected;
@@ -697,16 +702,16 @@ namespace RippleEditor
                     else if (action == TileAction.QRCode)
                     {
                         LayoutTiles(Globals.CurrentlySelectedParent);
-                        ((TextBlock)this.FindName("MainOptionGridLabel")).Text = rippleData.Floor.Tiles[parentTileID].SubTiles[tileID].Name;
+                        ((TextBlock)FindName("MainOptionGridLabel")).Text = rippleData.Floor.Tiles[parentTileID].SubTiles[tileID].Name;
                         ProcessTileActionForQRCode(rippleData.Floor.Tiles[parentTileID].SubTiles[tileID].ActionURI);
                     }
 
-                    this.UpdateLayout();
+                    UpdateLayout();
                 }
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in OnOptionSelected for box number {0}: {1}", BoxNumber, ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in OnOptionSelected for box number {0}: {1}", BoxNumber, ex.Message);
             }
 
         }
@@ -719,17 +724,17 @@ namespace RippleEditor
             {
                 //Show the floor options
                 //((System.Windows.Controls.Image)this.FindName("OverlayImage")).Visibility = Visibility.Collapsed;
-                ((Grid)this.FindName("MainOptionGrid")).Visibility = Visibility.Collapsed;
+                ((Grid)FindName("MainOptionGrid")).Visibility = Visibility.Collapsed;
 
                 LayoutTiles(0);
 
                 //Update the UI
-                this.UpdateLayout();
+                UpdateLayout();
             }
             catch (Exception ex)
             {
                 //Do nothing
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in ShowStartOptions UI {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in ShowStartOptions UI {0}", ex.Message);
             }
 
         }
@@ -755,7 +760,7 @@ namespace RippleEditor
                             SetAttributesForWindowsControls<TextBlock>(item.Id + Label, "Text", item.Name);
 
                             //Clear the inner content grid either way
-                            ((Grid)this.FindName(InnerContent + item.Id)).Children.Clear();
+                            ((Grid)FindName(InnerContent + item.Id)).Children.Clear();
 
                             //Set the content for the tile if the tile type is not text
                             if (item.TileType != TileType.Text && (!String.IsNullOrEmpty(item.Content)))
@@ -779,7 +784,7 @@ namespace RippleEditor
                             SetAttributesForWindowsControls<TextBlock>(tileID + Label, "Text", item.Name);
 
                             //Clear the inner content grid either way
-                            ((Grid)this.FindName(InnerContent + tileID)).Children.Clear();
+                            ((Grid)FindName(InnerContent + tileID)).Children.Clear();
 
                             //Set the content for the tile if the tile type is not text
                             if (item.TileType != TileType.Text && (!String.IsNullOrEmpty(item.Content)))
@@ -788,13 +793,13 @@ namespace RippleEditor
                         catch (Exception ex)
                         {
                             //Do nothing
-                            RippleCommonUtilities.LoggingHelper.LogTrace(1, "Tile Layout failed for {0} : {1}", item.Id, ex.Message);
+                            LoggingHelper.LogTrace(1, "Tile Layout failed for {0} : {1}", item.Id, ex.Message);
                         }
                     }
-                    ((Grid)this.FindName("MainOptionGrid")).Visibility = Visibility.Visible;
-                    ((TextBlock)this.FindName("MainOptionGridLabel")).Text = rippleData.Floor.Tiles["Tile" + Globals.CurrentlySelectedParent].Name;
+                    ((Grid)FindName("MainOptionGrid")).Visibility = Visibility.Visible;
+                    ((TextBlock)FindName("MainOptionGridLabel")).Text = rippleData.Floor.Tiles["Tile" + Globals.CurrentlySelectedParent].Name;
                 }
-                this.UpdateLayout();
+                UpdateLayout();
 
                 //Call tile transitions
                 ResetColorsForMainOption(Globals.CurrentlySelectedParent);
@@ -802,7 +807,7 @@ namespace RippleEditor
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Layout Tiles failed for parent {0} : {1}", parent, ex.Message);
+                LoggingHelper.LogTrace(1, "Layout Tiles failed for parent {0} : {1}", parent, ex.Message);
             }
         }
 
@@ -815,33 +820,33 @@ namespace RippleEditor
                     //Image
                     if (contentURI.Contains("\\Assets\\Images\\"))
                     {
-                        System.Windows.Controls.Image img = new System.Windows.Controls.Image();
+                        var img = new Image();
                         img.Source = new BitmapImage(new Uri(contentURI));
-                        img.Style = (System.Windows.Style)App.Current.FindResource("TileImageStyle");
-                        ((Grid)this.FindName(InnerContent + tileID)).Children.Add(img);
+                        img.Style = (Style)App.Current.FindResource("TileImageStyle");
+                        ((Grid)FindName(InnerContent + tileID)).Children.Add(img);
                     }
                     //Video
                     else if (contentURI.Contains("\\Assets\\Videos\\"))
                     {
-                        MediaElement video = new MediaElement();
+                        var video = new MediaElement();
                         video.Source = new Uri(contentURI);
-                        ((Grid)this.FindName(InnerContent + tileID)).Children.Add(video);
+                        ((Grid)FindName(InnerContent + tileID)).Children.Add(video);
                         video.Play();
                     }
                     break;
                 case TileType.TextThumbnail:
-                    System.Windows.Controls.Image thum_img = new System.Windows.Controls.Image();
+                    var thum_img = new Image();
                     thum_img.Source = new BitmapImage(new Uri(contentURI));
-                    thum_img.Style = (System.Windows.Style)App.Current.FindResource("ThumbnailImageStyle");
-                    ((Grid)this.FindName(InnerContent + tileID)).Children.Add(thum_img);
+                    thum_img.Style = (Style)App.Current.FindResource("ThumbnailImageStyle");
+                    ((Grid)FindName(InnerContent + tileID)).Children.Add(thum_img);
                     break;
                 case TileType.LiveTile:
-                    System.Windows.Controls.Image tile_img = new System.Windows.Controls.Image();
+                    var tile_img = new Image();
                     tile_img.Name = "ImageAndText" + InnerContent + tileID;
                     tile_img.Source = new BitmapImage(new Uri(contentURI));
-                    tile_img.Style = (System.Windows.Style)App.Current.FindResource("TileImageStyle");
-                    ((Grid)this.FindName(InnerContent + tileID)).Children.Add(tile_img);
-                    this.UpdateLayout();
+                    tile_img.Style = (Style)App.Current.FindResource("TileImageStyle");
+                    ((Grid)FindName(InnerContent + tileID)).Children.Add(tile_img);
+                    UpdateLayout();
                     break;
             }
         }
@@ -851,21 +856,21 @@ namespace RippleEditor
             foreach (var item in rippleData.Floor.Tiles.Values)
             {
                 SetAttributesForWindowsControls<TextBlock>(item.Id + Label, "Text", "");
-                ((Grid)this.FindName(InnerContent + item.Id)).Children.Clear();
+                ((Grid)FindName(InnerContent + item.Id)).Children.Clear();
             }
 
             //Set the start label
-            ((TextBlock)this.FindName("Tile0Label")).Text = rippleData.Floor.Tiles["Tile0"].Name;
+            ((TextBlock)FindName("Tile0Label")).Text = rippleData.Floor.Tiles["Tile0"].Name;
         }
 
         private void ResetColorsForMainOption(int Parent)
         {
             //Set the background value for Start
-            ((Button)this.FindName("Tile0Button")).Background = new SolidColorBrush(rippleData.Floor.Tiles["Tile0"].Color);
+            ((Button)FindName("Tile0Button")).Background = new SolidColorBrush(rippleData.Floor.Tiles["Tile0"].Color);
             //Set the colors
             if (Parent > 0)
             {
-                ((Grid)this.FindName("MainOptionGrid")).Background = new SolidColorBrush(rippleData.Floor.Tiles["Tile" + Parent].Color);
+                ((Grid)FindName("MainOptionGrid")).Background = new SolidColorBrush(rippleData.Floor.Tiles["Tile" + Parent].Color);
 
                 foreach (var item in rippleData.Floor.Tiles["Tile" + Parent].SubTiles.Values)
                 {
@@ -880,16 +885,16 @@ namespace RippleEditor
                 }
             }
 
-            this.UpdateLayout();
+            UpdateLayout();
         }
 
         private void SetAttributesForWindowsControls<InstanceType>(string objectName, string propertyName, object propertyValue)
         {
-            InstanceType objectInstanceType = (InstanceType)this.FindName(objectName);
+            var objectInstanceType = (InstanceType)FindName(objectName);
 
             if (objectInstanceType != null)
             {
-                System.Reflection.PropertyInfo prop = typeof(InstanceType).GetProperty(propertyName);
+                var prop = typeof(InstanceType).GetProperty(propertyName);
                 prop.SetValue(objectInstanceType, propertyValue, null);
             }
         }
@@ -900,7 +905,7 @@ namespace RippleEditor
             Globals.currentAppState = RippleSystemStates.ActionContent;
             ResetColorsForMainOption(Globals.CurrentlySelectedParent);
             ClearFloorLabels();
-            this.PromptBlock.Text = "Animation would show up on the floor from location " + actionURI;
+            PromptBlock.Text = "Animation would show up on the floor from location " + actionURI;
         }
 
         private void ProcessTileActionForQRCode(string actionURI)
@@ -908,7 +913,7 @@ namespace RippleEditor
             Globals.currentAppState = RippleSystemStates.ActionContent;
             ResetColorsForMainOption(Globals.CurrentlySelectedParent);
             ClearFloorLabels();
-            this.PromptBlock.Text = "QRCode would show up on the floor for URI: " + actionURI;
+            PromptBlock.Text = "QRCode would show up on the floor for URI: " + actionURI;
         }
 
         private void ProcessTileActionForLogout()
@@ -916,7 +921,7 @@ namespace RippleEditor
             Globals.currentAppState = RippleSystemStates.ActionContent;
             ResetColorsForMainOption(Globals.CurrentlySelectedParent);
             ClearFloorLabels();
-            this.PromptBlock.Text = "System will simply logout";
+            PromptBlock.Text = "System will simply logout";
         }
 
         #endregion
@@ -930,8 +935,8 @@ namespace RippleEditor
             {
                 if (rippleData.Screen.ScreenContents.ContainsKey(tileID) && rippleData.Screen.ScreenContents[tileID].Type != ContentType.Nothing)
                 {
-                    this.ScreenUI.Visibility = System.Windows.Visibility.Visible;
-                    this.PlainScreen.Visibility = System.Windows.Visibility.Collapsed;
+                    ScreenUI.Visibility = Visibility.Visible;
+                    PlainScreen.Visibility = Visibility.Collapsed;
                     ProjectContent(rippleData.Screen.ScreenContents[tileID]);
                 }
                 else
@@ -942,13 +947,13 @@ namespace RippleEditor
                     //Clear the header text
                     TitleLabel.Text = "";
 
-                    this.ScreenUI.Visibility = Visibility.Collapsed;
-                    this.PlainScreen.Visibility = System.Windows.Visibility.Visible;
+                    ScreenUI.Visibility = Visibility.Collapsed;
+                    PlainScreen.Visibility = Visibility.Visible;
                 }
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in ShowContentPreview {0} : {1}", tileID, ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in ShowContentPreview {0} : {1}", tileID, ex.Message);
             }
         }
 
@@ -956,7 +961,7 @@ namespace RippleEditor
         /// Identifies the content type and project accordingly
         /// </summary>
         /// <param name="screenContent"></param>
-        private void ProjectContent(RippleDictionary.ScreenContent screenContent)
+        private void ProjectContent(ScreenContent screenContent)
         {
             VideoControl.Source = null;
             FullScreenVideoControl.Source = null;
@@ -973,7 +978,7 @@ namespace RippleEditor
 
 
             currentScreenContent = screenContent.Type;
-            String contentLocation = String.Empty;
+            var contentLocation = String.Empty;
             if (screenContent.Content.StartsWith(@"\Assets\"))
             {
                 contentLocation = HelperMethods.TargetAssetsRoot + screenContent.Content;
@@ -984,19 +989,19 @@ namespace RippleEditor
             }
             switch (screenContent.Type)
             {
-                case RippleDictionary.ContentType.HTML:
+                case ContentType.HTML:
                     ShowBrowser(contentLocation, screenContent.Header);
                     break;
-                case RippleDictionary.ContentType.Image:
+                case ContentType.Image:
                     ShowImage(contentLocation, screenContent.Header);
                     break;
-                case RippleDictionary.ContentType.PPT:
+                case ContentType.PPT:
                     ShowPPT(contentLocation, screenContent.Header);
                     break;
-                case RippleDictionary.ContentType.Text:
+                case ContentType.Text:
                     ShowText(screenContent.Content, screenContent.Header);
                     break;
-                case RippleDictionary.ContentType.Video:
+                case ContentType.Video:
                     ShowVideo(contentLocation, screenContent.Header);
                     break;
             }
@@ -1035,7 +1040,7 @@ namespace RippleEditor
                     VideoGrid.Visibility = Visibility.Visible;
                     VideoControl.Play();
                 }
-                this.UpdateLayout();
+                UpdateLayout();
             }
             catch (Exception)
             {
@@ -1075,7 +1080,7 @@ namespace RippleEditor
                     FullScreenVideoGrid.Visibility = Visibility.Collapsed;
                     VideoGrid.Visibility = Visibility.Collapsed;
                 }
-                this.UpdateLayout();
+                UpdateLayout();
             }
             catch (Exception)
             {
@@ -1131,7 +1136,7 @@ namespace RippleEditor
                     FullScreenVideoGrid.Visibility = Visibility.Collapsed;
                     VideoGrid.Visibility = Visibility.Collapsed;
                 }
-                this.UpdateLayout();
+                UpdateLayout();
             }
             catch (Exception)
             {
@@ -1154,8 +1159,8 @@ namespace RippleEditor
                 {
                     //Show the full screen video control  
                     //Display HTML content
-                    host = new System.Windows.Forms.Integration.WindowsFormsHost();
-                    browserElement = new System.Windows.Forms.WebBrowser();
+                    host = new WindowsFormsHost();
+                    browserElement = new WebBrowser();
                     browserElement.ScriptErrorsSuppressed = true;
                     host.Child = browserElement;
                     FullScreenContentGrid.Children.Clear();
@@ -1166,8 +1171,8 @@ namespace RippleEditor
                 else
                 {
                     TitleLabel.Text = header;
-                    host = new System.Windows.Forms.Integration.WindowsFormsHost();
-                    browserElement = new System.Windows.Forms.WebBrowser();
+                    host = new WindowsFormsHost();
+                    browserElement = new WebBrowser();
                     browserElement.ScriptErrorsSuppressed = true;
                     host.Child = browserElement;
                     ContentGrid.Children.Clear();
@@ -1177,12 +1182,12 @@ namespace RippleEditor
                     FullScreenVideoGrid.Visibility = Visibility.Collapsed;
                     VideoGrid.Visibility = Visibility.Collapsed;
                 }
-                String fileLocation = Content;
-                String pageUri = String.Empty;
+                var fileLocation = Content;
+                var pageUri = String.Empty;
                 //Local file
                 if (File.Exists(fileLocation))
                 {
-                    String[] PathParts = fileLocation.Split(new char[] { ':' });
+                    var PathParts = fileLocation.Split(new char[] { ':' });
                     pageUri = "file://127.0.0.1/" + PathParts[0] + "$" + PathParts[1];
                 }
                 //Web hosted file
@@ -1191,11 +1196,11 @@ namespace RippleEditor
                     pageUri = Content;
                 }
                 browserElement.Navigate(pageUri);
-                this.UpdateLayout();
+                UpdateLayout();
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in Show Browser {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in Show Browser {0}", ex.Message);
             }
         }
         #endregion
@@ -1203,7 +1208,7 @@ namespace RippleEditor
         #region Helper Methods
         private string GetRippleXMLFileLocation()
         {
-            return System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + "\\..\\RippleXML.xml";
+            return Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "\\..\\RippleXML.xml";
         }
         #endregion
 
@@ -1231,7 +1236,7 @@ namespace RippleEditor
         private void CloseButtonMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             //Stop Logging
-            RippleCommonUtilities.LoggingHelper.StopLogging();
+            LoggingHelper.StopLogging();
             Close();
         }
 
@@ -1259,7 +1264,7 @@ namespace RippleEditor
                         else if (prevSelectedTile.Action == TileAction.QRCode)
                         {
                             LayoutTiles(Globals.CurrentlySelectedParent);
-                            ((TextBlock)this.FindName("MainOptionGridLabel")).Text = prevSelectedTile.Name;
+                            ((TextBlock)FindName("MainOptionGridLabel")).Text = prevSelectedTile.Name;
                             ProcessTileActionForQRCode(prevSelectedTile.ActionURI);
                         }
                         else if (prevSelectedTile.Action == TileAction.Logout)
@@ -1282,7 +1287,7 @@ namespace RippleEditor
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in Refresh button click {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in Refresh button click {0}", ex.Message);
             }
         }
     }

@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.IO.Pipes;
-using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Threading;
+using RippleCommonUtilities;
 
 namespace RippleScreenApp.Utilities
 {
@@ -24,8 +21,8 @@ namespace RippleScreenApp.Utilities
             {
                 pipeName = "RipplePipe";
                 owner = currentInstance;
-                ThreadStart pipeThread = new ThreadStart(createPipeServer);
-                Thread listenerThread = new Thread(pipeThread);
+                var pipeThread = new ThreadStart(createPipeServer);
+                var listenerThread = new Thread(pipeThread);
                 listenerThread.SetApartmentState(ApartmentState.STA);
                 listenerThread.IsBackground = true;
                 listenerThread.Start();
@@ -38,11 +35,11 @@ namespace RippleScreenApp.Utilities
 
         public static void createPipeServer()
         {
-            Decoder decoder = Encoding.Default.GetDecoder();
-            Byte[] bytes = new Byte[BufferSize];
-            char[] chars = new char[BufferSize];
-            int numBytes = 0;
-            StringBuilder msg = new StringBuilder();
+            var decoder = Encoding.Default.GetDecoder();
+            var bytes = new Byte[BufferSize];
+            var chars = new char[BufferSize];
+            var numBytes = 0;
+            var msg = new StringBuilder();
 
             try
             {
@@ -59,7 +56,7 @@ namespace RippleScreenApp.Utilities
                             numBytes = pipeServer.Read(bytes, 0, BufferSize);
                             if (numBytes > 0)
                             {
-                                int numChars = decoder.GetCharCount(bytes, 0, numBytes);
+                                var numChars = decoder.GetCharCount(bytes, 0, numBytes);
                                 decoder.GetChars(bytes, 0, numBytes, chars, 0, false);
                                 msg.Append(chars, 0, numChars);
                             }
@@ -84,7 +81,7 @@ namespace RippleScreenApp.Utilities
 
         public static void SendMessage(String optionVal)
         {
-            using (NamedPipeClientStream pipeClient = new NamedPipeClientStream(".", "RippleReversePipe", PipeDirection.Out, PipeOptions.Asynchronous))
+            using (var pipeClient = new NamedPipeClientStream(".", "RippleReversePipe", PipeDirection.Out, PipeOptions.Asynchronous))
             {
                 try
                 {
@@ -99,12 +96,12 @@ namespace RippleScreenApp.Utilities
                     }
                     catch (Exception ex)
                     {
-                        RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in Send Message {1} at Screen side {0}", ex.Message, optionVal);
+                        LoggingHelper.LogTrace(1, "Went wrong in Send Message {1} at Screen side {0}", ex.Message, optionVal);
                         return;
                     }
                 }
                 //Connected to the server or floor application
-                using (StreamWriter sw = new StreamWriter(pipeClient))
+                using (var sw = new StreamWriter(pipeClient))
                 {
                     sw.Write(optionVal);
                 }

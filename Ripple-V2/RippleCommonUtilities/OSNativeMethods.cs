@@ -55,7 +55,7 @@ namespace RippleCommonUtilities
 
         public static void DownScrolling()
         {
-            int x = -600;
+            var x = -600;
             mouse_event((int)(WHEEL), 0, 0, x, 0);
         }
 
@@ -66,7 +66,7 @@ namespace RippleCommonUtilities
             if (positionY > int.MaxValue)
                 throw new ArgumentOutOfRangeException("positionY");
 
-            Input[] i = new Input[2];
+            var i = new Input[2];
 
             // move the mouse to the position specified
             i[0] = new Input();
@@ -92,7 +92,7 @@ namespace RippleCommonUtilities
             lastLeftDown = leftDown;
 
             // send it off
-            uint result = SendInput(2, i, Marshal.SizeOf(i[0]));
+            var result = SendInput(2, i, Marshal.SizeOf(i[0]));
             if (result == 0)
                 throw new Win32Exception(Marshal.GetLastWin32Error());
         }

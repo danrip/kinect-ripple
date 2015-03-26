@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace RippleCalibration
+﻿namespace RippleCalibration
 {
     public static class Globals
     {
@@ -43,17 +37,17 @@ namespace RippleCalibration
 
         public static void ResetCoordinates()
         {
-            Globals.X1 = 0.00;
-            Globals.Y1 = 0.00;
+            X1 = 0.00;
+            Y1 = 0.00;
 
-            Globals.X2 = 0.00;
-            Globals.Y2 = 0.00;
+            X2 = 0.00;
+            Y2 = 0.00;
 
-            Globals.X3 = 0.00;
-            Globals.Y3 = 0.00;
+            X3 = 0.00;
+            Y3 = 0.00;
 
-            Globals.X4 = 0.00;
-            Globals.Y4 = 0.00;
+            X4 = 0.00;
+            Y4 = 0.00;
 
             setCoordinates = false;
             appState = AppState.firstCoordinate;

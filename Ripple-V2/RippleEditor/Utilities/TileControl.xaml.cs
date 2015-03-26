@@ -1,17 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace RippleEditor.Utilities
 {
@@ -27,24 +17,24 @@ namespace RippleEditor.Utilities
 
         public Color TileBackground
         {
-            set { this.TileID.Background = new SolidColorBrush(value); }
+            set { TileID.Background = new SolidColorBrush(value); }
         }
 
         public double TileWidth
         {
-            set { this.TileID.Width = value * Constants.HRatio; }
+            set { TileID.Width = value * Constants.HRatio; }
         }
 
         public double TileHeight
         {
-            set { this.TileID.Height = value * Constants.VRatio; }
+            set { TileID.Height = value * Constants.VRatio; }
         }
 
         public void SetMargin(double left, double top)
         {
-            HorizontalAlignment = System.Windows.HorizontalAlignment.Left;
-            VerticalAlignment = System.Windows.VerticalAlignment.Top;
-            this.TileID.Margin = new Thickness(left * Constants.HRatio + 50, top * Constants.VRatio + 50, 0, 0);
+            HorizontalAlignment = HorizontalAlignment.Left;
+            VerticalAlignment = VerticalAlignment.Top;
+            TileID.Margin = new Thickness(left * Constants.HRatio + 50, top * Constants.VRatio + 50, 0, 0);
         }
 
         public void SetNames(String tileID, MainPage mainInstance)
@@ -64,38 +54,38 @@ namespace RippleEditor.Utilities
 
         public String TileIDName 
         {
-            get { return this.TileID.Name; }
-            set { this.TileID.Name = value; }
+            get { return TileID.Name; }
+            set { TileID.Name = value; }
         }
 
         public String TileIDButtonName
         {
-            get { return this.TileIDButton.Name; }
-            set { this.TileIDButton.Name = value; }
+            get { return TileIDButton.Name; }
+            set { TileIDButton.Name = value; }
         }
 
         public String TileIDLabelName
         {
-            get { return this.TileIDLabel.Name; }
-            set { this.TileIDLabel.Name = value; }
+            get { return TileIDLabel.Name; }
+            set { TileIDLabel.Name = value; }
         }
 
         public String InnerTileIDName
         {
-            get { return this.InnerTileID.Name; }
-            set { this.InnerTileID.Name = value; }
+            get { return InnerTileID.Name; }
+            set { InnerTileID.Name = value; }
         }
 
         public String InnerContentTileIDName
         {
-            get { return this.InnerContentTileID.Name; }
-            set { this.InnerContentTileID.Name = value; }
+            get { return InnerContentTileID.Name; }
+            set { InnerContentTileID.Name = value; }
         }
 
         public String TileIDLabelText
         {
-            get { return this.TileIDLabel.Name; }
-            set { this.TileIDLabel.Text = value; }
+            get { return TileIDLabel.Name; }
+            set { TileIDLabel.Text = value; }
         }
 
         public void UnregisterNames(MainPage mainInstance)

@@ -29,7 +29,7 @@ namespace RippleFloorApp.Utilities.KinectGestures
         /// <param name="data">The skeleton data.</param>
         public void UpdateAllGestures(Body data)
         {
-            foreach (Gesture gesture in this.gestures)
+            foreach (var gesture in gestures)
             {
                 gesture.UpdateGesture(data);
             }
@@ -42,9 +42,9 @@ namespace RippleFloorApp.Utilities.KinectGestures
         /// <param name="gestureDefinition">The gesture definition.</param>
         public void AddGesture(string name, IRelativeGestureSegment[] gestureDefinition)
         {
-            Gesture gesture = new Gesture(name, gestureDefinition);
+            var gesture = new Gesture(name, gestureDefinition);
             gesture.GestureRecognized += OnGestureRecognized;
-            this.gestures.Add(gesture);
+            gestures.Add(gesture);
         }
 
         /// <summary>
@@ -54,12 +54,12 @@ namespace RippleFloorApp.Utilities.KinectGestures
         /// <param name="e">The <see cref="KinectSkeltonTracker.GestureEventArgs"/> instance containing the event data.</param>
         private void OnGestureRecognized(object sender, GestureEventArgs e)
         {
-            if (this.GestureRecognized != null)
+            if (GestureRecognized != null)
             {
-                this.GestureRecognized(this, e);
+                GestureRecognized(this, e);
             }
 
-            foreach (Gesture g in this.gestures)
+            foreach (var g in gestures)
             {
                 g.Reset();
             }

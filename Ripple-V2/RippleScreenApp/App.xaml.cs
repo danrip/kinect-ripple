@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Threading;
+using RippleCommonUtilities;
+using RippleScreenApp.Utilities;
 
 namespace RippleScreenApp
 {
@@ -16,11 +14,11 @@ namespace RippleScreenApp
     {
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            double top = 0.0;
-            double left = 0.0;
+            var top = 0.0;
+            var left = 0.0;
             double HRes = 1280;
             double VRes = 800;
-            for (int i = 0; i != e.Args.Length; ++i)
+            for (var i = 0; i != e.Args.Length; ++i)
             {
                 if (e.Args[i] == "/Top")
                 {
@@ -41,13 +39,13 @@ namespace RippleScreenApp
             }
 
             //Set the globals
-            RippleCommonUtilities.Globals.CurrentResolution.VerticalResolution = VRes;
-            RippleCommonUtilities.Globals.CurrentResolution.HorizontalResolution = HRes;
-            RippleCommonUtilities.Globals.CurrentResolution.XOrigin = left;
-            RippleCommonUtilities.Globals.CurrentResolution.YOrigin = top;
+            Globals.CurrentResolution.VerticalResolution = VRes;
+            Globals.CurrentResolution.HorizontalResolution = HRes;
+            Globals.CurrentResolution.XOrigin = left;
+            Globals.CurrentResolution.YOrigin = top;
 
             // Create main application window
-            ScreenWindow screenWin = new ScreenWindow();
+            var screenWin = new ScreenWindow();
             screenWin.WindowStartupLocation = WindowStartupLocation.Manual;
             screenWin.Top = top;
             screenWin.Left = left;
@@ -63,12 +61,12 @@ namespace RippleScreenApp
         private void Application_Exit_1(object sender, ExitEventArgs e)
         {
             //Commit the telemetry data
-            Utilities.TelemetryWriter.CommitTelemetry();
+            TelemetryWriter.CommitTelemetry();
         }
 
-        private void Application_DispatcherUnhandledException_1(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        private void Application_DispatcherUnhandledException_1(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
-            RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in screen {0}", e.Exception.Message);
+            LoggingHelper.LogTrace(1, "Went wrong in screen {0}", e.Exception.Message);
             e.Handled = true;
         }
     }

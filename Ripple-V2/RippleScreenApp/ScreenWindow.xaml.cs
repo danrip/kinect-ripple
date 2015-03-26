@@ -1,25 +1,18 @@
-﻿using RippleCommonUtilities;
+﻿using System.Reflection;
+using System.Threading;
+using System.Windows.Forms.Integration;
+using RippleCommonUtilities;
 using RippleDictionary;
 using RippleScreenApp.Utilities;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Speech.Synthesis;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using HelperMethods = RippleScreenApp.DocumentPresentation.HelperMethods;
+using WebBrowser = System.Windows.Forms.WebBrowser;
 
 namespace RippleScreenApp
 {
@@ -28,19 +21,19 @@ namespace RippleScreenApp
     /// </summary>
     public partial class ScreenWindow : Window
     {
-        internal static RippleDictionary.Ripple rippleData;
+        internal static Ripple rippleData;
         private static TextBlock tbElement = new TextBlock();
         private static TextBlock fullScreenTbElement = new TextBlock();
         private static Image imgElement = new Image();
         private static Image fullScreenImgElement = new Image();
         private static String currentVideoURI = String.Empty;
-        private static RippleDictionary.ContentType currentScreenContent = ContentType.Nothing;
+        private static ContentType currentScreenContent = ContentType.Nothing;
         private static bool loopVideo = false;
         private BackgroundWorker myBackgroundWorker;
         private BackgroundWorker pptWorker;
-        Utilities.ScriptingHelper helper;
-        public System.Windows.Forms.Integration.WindowsFormsHost host;
-        public System.Windows.Forms.WebBrowser browserElement;
+        ScriptingHelper helper;
+        public WindowsFormsHost host;
+        public WebBrowser browserElement;
         internal static String personName;
         private long prevRow;
         private Tile currentTile = null;
@@ -58,13 +51,13 @@ namespace RippleScreenApp
                 SetObjectProperties();
 
                 //Start receiving messages
-                Utilities.MessageReceiver.StartReceivingMessages(this);
+                MessageReceiver.StartReceivingMessages(this);
 
             }
             catch (Exception ex)
             {
                 //Exit and do nothing
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in Screen {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in Screen {0}", ex.Message);
             }
 
         }
@@ -73,20 +66,20 @@ namespace RippleScreenApp
         {
             try
             {
-                this.WindowState = System.Windows.WindowState.Maximized;
+                WindowState = WindowState.Maximized;
                 ResetUI();
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in Window Loaded {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in Window Loaded {0}", ex.Message);
             }
         }
 
         private void SetObjectProperties()
         {
             //Initialize video properties
-            this.IntroVideoControl.Source = new Uri(Helper.GetAssetURI(rippleData.Screen.ScreenContents["IntroVideo"].Content));
-            this.IntroVideoControl.ScrubbingEnabled = true;
+            IntroVideoControl.Source = new Uri(Helper.GetAssetURI(rippleData.Screen.ScreenContents["IntroVideo"].Content));
+            IntroVideoControl.ScrubbingEnabled = true;
             //Set image elements properties
             imgElement.Stretch = Stretch.Fill;
             fullScreenImgElement.Stretch = Stretch.Fill;
@@ -107,11 +100,11 @@ namespace RippleScreenApp
             try
             {
                 //Loads the local dictionary data from the configuration XML
-                rippleData = RippleDictionary.Dictionary.GetRipple(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location));
+                rippleData = Dictionary.GetRipple(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location));
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in Load Data for Screen {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in Load Data for Screen {0}", ex.Message);
                 throw;
             }
         }
@@ -135,12 +128,12 @@ namespace RippleScreenApp
                 ProjectContent(rippleData.Screen.ScreenContents["LockScreen"]);
 
                 //Commit the telemetry data
-                Utilities.TelemetryWriter.CommitTelemetryAsync();
+                TelemetryWriter.CommitTelemetryAsync();
             }
             catch (Exception ex)
             {
                 //Do nothing
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in Reset UI for Screen {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in Reset UI for Screen {0}", ex.Message);
             }
 
         }
@@ -158,7 +151,7 @@ namespace RippleScreenApp
                 if (val.Equals("Reset"))
                 {
                     //Update the previous entry
-                    Utilities.TelemetryWriter.UpdatePreviousEntry();
+                    TelemetryWriter.UpdatePreviousEntry();
 
                     //Reset the system
                     ResetUI();
@@ -168,7 +161,7 @@ namespace RippleScreenApp
                 else if (val.StartsWith("System Start"))
                 {
                     //Load the telemetry Data
-                    Utilities.TelemetryWriter.RetrieveTelemetryData();
+                    TelemetryWriter.RetrieveTelemetryData();
 
                     //The floor has asked the screen to start the system
                     //Get the User Name
@@ -177,7 +170,7 @@ namespace RippleScreenApp
                     //Get the person identity for the session
                     personName = String.IsNullOrEmpty(Globals.UserName) ? Convert.ToString(Guid.NewGuid()) : Globals.UserName;
 
-                    Utilities.TelemetryWriter.AddTelemetryRow(rippleData.Floor.SetupID, personName, "Unlock", val, "Unlock");
+                    TelemetryWriter.AddTelemetryRow(rippleData.Floor.SetupID, personName, "Unlock", val, "Unlock");
 
                     //Set the system state
                     Globals.currentAppState = RippleSystemStates.UserDetected;
@@ -210,23 +203,23 @@ namespace RippleScreenApp
 
                         ProjectContent(rippleData.Screen.ScreenContents[val]);
 
-                        RippleCommonUtilities.LoggingHelper.LogTrace(1, "In Message Received {0} {1}:{2}", Utilities.TelemetryWriter.telemetryData.Tables[0].Rows.Count, Utilities.TelemetryWriter.telemetryData.Tables[0].Rows[Utilities.TelemetryWriter.telemetryData.Tables[0].Rows.Count - 1].ItemArray[6], DateTime.Now);
+                        LoggingHelper.LogTrace(1, "In Message Received {0} {1}:{2}", TelemetryWriter.telemetryData.Tables[0].Rows.Count, TelemetryWriter.telemetryData.Tables[0].Rows[TelemetryWriter.telemetryData.Tables[0].Rows.Count - 1].ItemArray[6], DateTime.Now);
 
                         //Update the end time for the previous
-                        Utilities.TelemetryWriter.UpdatePreviousEntry();
+                        TelemetryWriter.UpdatePreviousEntry();
 
                         //Insert the new entry
-                        Utilities.TelemetryWriter.AddTelemetryRow(rippleData.Floor.SetupID, personName, ((currentTile = GetFloorTileForID(val))==null)?"Unknown":currentTile.Name, val, (val == "Tile0") ? "Start" : "Option");
+                        TelemetryWriter.AddTelemetryRow(rippleData.Floor.SetupID, personName, ((currentTile = GetFloorTileForID(val))==null)?"Unknown":currentTile.Name, val, (val == "Tile0") ? "Start" : "Option");
                     }
                     else
                     {
                         //Stop any existing projections
-                        DocumentPresentation.HelperMethods.StopPresentation();
+                        HelperMethods.StopPresentation();
                         FullScreenContentGrid.Children.Clear();
                         ContentGrid.Children.Clear();
 
                         //Set focus for screen window also
-                        Utilities.Helper.ClickOnScreenToGetFocus();
+                        Helper.ClickOnScreenToGetFocus();
 
                         //Stop any existing videos
                         loopVideo = false;
@@ -262,7 +255,7 @@ namespace RippleScreenApp
             catch (Exception ex)
             {
                 //Do nothing
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in On message received for Screen {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in On message received for Screen {0}", ex.Message);
             }
 
 
@@ -287,7 +280,7 @@ namespace RippleScreenApp
             catch (Exception ex)
             {
                 //Do nothing
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in OnHTMLMessagesReceived received for Screen {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in OnHTMLMessagesReceived received for Screen {0}", ex.Message);
             }
         }
 
@@ -299,33 +292,33 @@ namespace RippleScreenApp
                 if (inputGesture == GestureTypes.LeftSwipe.ToString() && currentScreenContent == ContentType.PPT)
                 {
                     //Acts as previous
-                    DocumentPresentation.HelperMethods.GotoPrevious();
+                    HelperMethods.GotoPrevious();
                 }
                 else if (inputGesture == GestureTypes.RightSwipe.ToString() && currentScreenContent == ContentType.PPT)
                 {
                     //Check again, Means the presentation ended on clicking next
-                    if (!DocumentPresentation.HelperMethods.HasPresentationStarted())
+                    if (!HelperMethods.HasPresentationStarted())
                     {
                         //Change the screen
                         //ShowText("Your presentation has ended, Select some other option", "Select some other option");
                         ShowImage(@"\Assets\Images\pptend.png", "Presentation Ended");
 
                         //Set focus for screen window also
-                        Utilities.Helper.ClickOnScreenToGetFocus();
+                        Helper.ClickOnScreenToGetFocus();
                     }
 
                     //Acts as next
-                    DocumentPresentation.HelperMethods.GotoNext();
+                    HelperMethods.GotoNext();
 
                     //Check again, Means the presentation ended on clicking next
-                    if (!DocumentPresentation.HelperMethods.HasPresentationStarted())
+                    if (!HelperMethods.HasPresentationStarted())
                     {
                         //Change the screen text
                         //ShowText("Your presentation has ended, Select some other option", "Select some other option");
                         ShowImage(@"\Assets\Images\pptend.png", "Presentation Ended");
 
                         //Set focus for screen window also
-                        Utilities.Helper.ClickOnScreenToGetFocus();
+                        Helper.ClickOnScreenToGetFocus();
                     }
                 }
                 //Browser mode
@@ -340,7 +333,7 @@ namespace RippleScreenApp
             catch (Exception ex)
             {
                 //Do nothing
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in OnGestureInput received for Screen {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in OnGestureInput received for Screen {0}", ex.Message);
             }
         }
 
@@ -349,7 +342,7 @@ namespace RippleScreenApp
         /// Identifies the content type and project accordingly
         /// </summary>
         /// <param name="screenContent"></param>
-        private void ProjectContent(RippleDictionary.ScreenContent screenContent)
+        private void ProjectContent(ScreenContent screenContent)
         {
             try
             {
@@ -363,12 +356,12 @@ namespace RippleScreenApp
                 }
 
                 //Stop any existing projections
-                DocumentPresentation.HelperMethods.StopPresentation();
+                HelperMethods.StopPresentation();
                 FullScreenContentGrid.Children.Clear();
                 ContentGrid.Children.Clear();
 
                 //Set focus for screen window also
-                Utilities.Helper.ClickOnScreenToGetFocus();
+                Helper.ClickOnScreenToGetFocus();
 
                 //Stop any existing videos
                 loopVideo = false;
@@ -406,19 +399,19 @@ namespace RippleScreenApp
 
                 switch (screenContent.Type)
                 {
-                    case RippleDictionary.ContentType.HTML:
+                    case ContentType.HTML:
                         ShowBrowser(screenContent.Content, screenContent.Header);
                         break;
-                    case RippleDictionary.ContentType.Image:
+                    case ContentType.Image:
                         ShowImage(screenContent.Content, screenContent.Header);
                         break;
-                    case RippleDictionary.ContentType.PPT:
+                    case ContentType.PPT:
                         ShowPPT(screenContent.Content, screenContent.Header);
                         break;
-                    case RippleDictionary.ContentType.Text:
+                    case ContentType.Text:
                         ShowText(screenContent.Content, screenContent.Header);
                         break;
-                    case RippleDictionary.ContentType.Video:
+                    case ContentType.Video:
                         loopVideo = (screenContent.LoopVideo == null) ? false : Convert.ToBoolean(screenContent.LoopVideo);
                         if (screenContent.Id == "Tile0")
                             StartVideoPlayed = true;
@@ -428,22 +421,22 @@ namespace RippleScreenApp
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in ProjectContent Method for screen {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in ProjectContent Method for screen {0}", ex.Message);
             }
         }
 
-        private void ProjectIntroContent(RippleDictionary.ScreenContent screenContent)
+        private void ProjectIntroContent(ScreenContent screenContent)
         {
             try
             {
                 //Dispose the previous content
                 //Stop any existing projections
-                DocumentPresentation.HelperMethods.StopPresentation();
+                HelperMethods.StopPresentation();
                 FullScreenContentGrid.Children.Clear();
                 ContentGrid.Children.Clear();
 
                 //Set focus for screen window also
-                Utilities.Helper.ClickOnScreenToGetFocus();
+                Helper.ClickOnScreenToGetFocus();
 
                 //Stop any existing videos
                 loopVideo = false;
@@ -468,7 +461,7 @@ namespace RippleScreenApp
                 helper = null;
 
                 //Play the Intro video 
-                this.TitleLabel.Text = "";
+                TitleLabel.Text = "";
                 ContentGrid.Visibility = Visibility.Collapsed;
                 FullScreenContentGrid.Visibility = Visibility.Collapsed;
                 FullScreenVideoGrid.Visibility = Visibility.Collapsed;
@@ -476,7 +469,7 @@ namespace RippleScreenApp
                 VideoControl.Visibility = Visibility.Collapsed;
                 VideoGrid.Visibility = Visibility.Visible;
                 IntroVideoControl.Play();
-                this.UpdateLayout();
+                UpdateLayout();
 
                 myBackgroundWorker = new BackgroundWorker();
                 myBackgroundWorker.DoWork += myBackgroundWorker_DoWork;
@@ -485,7 +478,7 @@ namespace RippleScreenApp
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in ProjectIntroContent Method for screen {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in ProjectIntroContent Method for screen {0}", ex.Message);
             }
         }
 
@@ -494,16 +487,16 @@ namespace RippleScreenApp
             //System has been started, it just finished playing the intro video
             if (Globals.currentAppState == RippleSystemStates.UserDetected)
             {
-                this.IntroVideoControl.Stop();
+                IntroVideoControl.Stop();
                 //this.IntroVideoControl.Source = null;
-                this.IntroVideoControl.Visibility = System.Windows.Visibility.Collapsed;
+                IntroVideoControl.Visibility = Visibility.Collapsed;
                 ShowGotoStartContent();
             }
         }
 
         private void myBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            System.Threading.Thread.Sleep(Convert.ToInt16(e.Argument) * 1000);
+            Thread.Sleep(Convert.ToInt16(e.Argument) * 1000);
         }
 
         /// <summary>
@@ -539,11 +532,11 @@ namespace RippleScreenApp
                     VideoGrid.Visibility = Visibility.Visible;
                     VideoControl.Play();
                 }
-                this.UpdateLayout();
+                UpdateLayout();
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in Show Video method {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in Show Video method {0}", ex.Message);
             }
 
         }
@@ -580,11 +573,11 @@ namespace RippleScreenApp
                     FullScreenVideoGrid.Visibility = Visibility.Collapsed;
                     VideoGrid.Visibility = Visibility.Collapsed;
                 }
-                this.UpdateLayout();
+                UpdateLayout();
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in Show Text method {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in Show Text method {0}", ex.Message);
             }
         }
 
@@ -614,8 +607,8 @@ namespace RippleScreenApp
                     FullScreenVideoGrid.Visibility = Visibility.Collapsed;
                     VideoGrid.Visibility = Visibility.Collapsed;
                 }
-                this.UpdateLayout();
-                DocumentPresentation.HelperMethods.StartPresentation(Helper.GetAssetURI(Content));
+                UpdateLayout();
+                HelperMethods.StartPresentation(Helper.GetAssetURI(Content));
 
                 //ShowText("Please wait while we load your presentation", header);
                 //ShowImage(@"\Assets\Images\loading.png", header);
@@ -626,13 +619,13 @@ namespace RippleScreenApp
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in Show PPT method {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in Show PPT method {0}", ex.Message);
             }
         }
 
         void pptWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            DocumentPresentation.HelperMethods.StartPresentation(Helper.GetAssetURI(e.Argument.ToString()));
+            HelperMethods.StartPresentation(Helper.GetAssetURI(e.Argument.ToString()));
         }
 
         /// <summary>
@@ -667,11 +660,11 @@ namespace RippleScreenApp
                     FullScreenVideoGrid.Visibility = Visibility.Collapsed;
                     VideoGrid.Visibility = Visibility.Collapsed;
                 }
-                this.UpdateLayout();
+                UpdateLayout();
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in Show Image {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in Show Image {0}", ex.Message);
             }
         }
 
@@ -691,10 +684,10 @@ namespace RippleScreenApp
                 {
                     //Show the full screen video control  
                     //Display HTML content
-                    host = new System.Windows.Forms.Integration.WindowsFormsHost();
-                    browserElement = new System.Windows.Forms.WebBrowser();
+                    host = new WindowsFormsHost();
+                    browserElement = new WebBrowser();
                     browserElement.ScriptErrorsSuppressed = true;
-                    helper = new Utilities.ScriptingHelper(this);
+                    helper = new ScriptingHelper(this);
                     browserElement.ObjectForScripting = helper;
                     host.Child = browserElement;
                     helper.PropertyChanged += helper_PropertyChanged;
@@ -706,10 +699,10 @@ namespace RippleScreenApp
                 else
                 {
                     TitleLabel.Text = header;
-                    host = new System.Windows.Forms.Integration.WindowsFormsHost();
-                    browserElement = new System.Windows.Forms.WebBrowser();
+                    host = new WindowsFormsHost();
+                    browserElement = new WebBrowser();
                     browserElement.ScriptErrorsSuppressed = true;
-                    helper = new Utilities.ScriptingHelper(this);
+                    helper = new ScriptingHelper(this);
                     host.Child = browserElement;
                     browserElement.ObjectForScripting = helper;
                     helper.PropertyChanged += helper_PropertyChanged;
@@ -720,12 +713,12 @@ namespace RippleScreenApp
                     FullScreenVideoGrid.Visibility = Visibility.Collapsed;
                     VideoGrid.Visibility = Visibility.Collapsed;
                 }
-                String fileLocation = Helper.GetAssetURI(Content);
-                String pageUri = String.Empty;
+                var fileLocation = Helper.GetAssetURI(Content);
+                var pageUri = String.Empty;
                 //Local file
                 if (File.Exists(fileLocation))
                 {
-                    String[] PathParts = fileLocation.Split(new char[] { ':' });
+                    var PathParts = fileLocation.Split(new char[] { ':' });
                     pageUri = "file://127.0.0.1/" + PathParts[0] + "$" + PathParts[1];
                 }
                 //Web hosted file
@@ -734,11 +727,11 @@ namespace RippleScreenApp
                     pageUri = Content;
                 }
                 browserElement.Navigate(pageUri);
-                this.UpdateLayout();
+                UpdateLayout();
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in Show Browser {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in Show Browser {0}", ex.Message);
             }
         }
         #endregion
@@ -805,7 +798,7 @@ namespace RippleScreenApp
 
         private void Window_Closing_1(object sender, CancelEventArgs e)
         {
-            RippleCommonUtilities.LoggingHelper.StopLogging();
+            LoggingHelper.StopLogging();
         }
 
         //Handles messages sent by HTML animations
@@ -813,7 +806,7 @@ namespace RippleScreenApp
         {
             try
             {
-                var scriptingHelper = sender as Utilities.ScriptingHelper;
+                var scriptingHelper = sender as ScriptingHelper;
                 if (scriptingHelper != null)
                 {
                     if (e.PropertyName == "SendMessage")
@@ -821,14 +814,14 @@ namespace RippleScreenApp
                         if ((!String.IsNullOrEmpty(scriptingHelper.SendMessage)) && currentScreenContent == ContentType.HTML)
                         {
                             //Send the screen a message for HTML parameter passing
-                            Utilities.MessageReceiver.SendMessage("HTML:" + scriptingHelper.SendMessage);
+                            MessageReceiver.SendMessage("HTML:" + scriptingHelper.SendMessage);
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in helper property changed event {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in helper property changed event {0}", ex.Message);
             }
 
         }

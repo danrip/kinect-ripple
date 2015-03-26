@@ -1,5 +1,4 @@
 ﻿using Microsoft.Kinect;
-using System.Diagnostics;
 
 namespace RippleFloorApp.Utilities.KinectGestures.Segments
 {

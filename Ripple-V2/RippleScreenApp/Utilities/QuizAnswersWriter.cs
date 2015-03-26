@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
+using RippleCommonUtilities;
 
 namespace RippleScreenApp.Utilities
 {
@@ -20,8 +17,8 @@ namespace RippleScreenApp.Utilities
         private delegate void CommitQuizAnswersDelegate(String quizAnswersData, String personName, String setupID);
         public static void CommitQuizAnswersAsync(String quizAnswersData, String personName, String setupID)
         {
-            CommitQuizAnswersDelegate asyncDelegate = new CommitQuizAnswersDelegate(CommitQuizAnswers);
-            AsyncOperation operation = AsyncOperationManager.CreateOperation(null);
+            var asyncDelegate = new CommitQuizAnswersDelegate(CommitQuizAnswers);
+            var operation = AsyncOperationManager.CreateOperation(null);
             asyncDelegate.BeginInvoke(quizAnswersData, personName, setupID, null, operation);
         }
 
@@ -48,7 +45,7 @@ namespace RippleScreenApp.Utilities
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in CommitQuizAnswers at Screen side {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in CommitQuizAnswers at Screen side {0}", ex.Message);
                 writer = null;
                 if (quizAnswersFile != null)
                 {
@@ -62,7 +59,7 @@ namespace RippleScreenApp.Utilities
         {
             XmlSerializer reader;
             StreamReader quizAnswersFile = null;
-            DataSet quizAnswersData = new DataSet();
+            var quizAnswersData = new DataSet();
             try
             {
                 if (File.Exists(QuizAnswersFilePath))
@@ -77,7 +74,7 @@ namespace RippleScreenApp.Utilities
                 else
                 {
                     //Initialize the Dataset and return it
-                    DataTable dt = new DataTable();
+                    var dt = new DataTable();
                     dt.Columns.Add(new DataColumn("SetupID", typeof(String)));
                     dt.Columns.Add(new DataColumn("PersonName", typeof(String)));
                     dt.Columns.Add(new DataColumn("Answers", typeof(String)));
@@ -88,7 +85,7 @@ namespace RippleScreenApp.Utilities
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in RetrieveQuizAnswersData at Screen side {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in RetrieveQuizAnswersData at Screen side {0}", ex.Message);
                 reader = null;
                 if (quizAnswersFile != null)
                 {

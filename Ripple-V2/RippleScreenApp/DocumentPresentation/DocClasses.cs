@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 using Microsoft.Office.Core;
+using RippleScreenApp.Utilities;
 using PowerPoint = Microsoft.Office.Interop.PowerPoint;
 using System.Diagnostics;
-using System.Windows;
 
 namespace RippleScreenApp.DocumentPresentation
 {
@@ -87,7 +84,7 @@ namespace RippleScreenApp.DocumentPresentation
                 g_PPT_Application.PresentationClose += g_PPT_Application_PresentationClose;
                 //g_PPT_Application.Activate();
             }
-            catch (System.Runtime.InteropServices.COMException)
+            catch (COMException)
             {
                 //Do nothing
             }
@@ -131,16 +128,16 @@ namespace RippleScreenApp.DocumentPresentation
                 if (g_PPT_Application != null)
                 {
                     ((PowerPoint.SlideShowWindow)g_PPT_Application.SlideShowWindows._Index(1)).Activate();
-                    PowerPoint.SlideShowWindow sd = ((PowerPoint.SlideShowWindow)g_PPT_Application.SlideShowWindows._Index(1));
-                    int currentVal = sd.View.CurrentShowPosition;
-                    int totalSlides = g_PPT_PresentationToBeProjected.Slides.Count;
+                    var sd = ((PowerPoint.SlideShowWindow)g_PPT_Application.SlideShowWindows._Index(1));
+                    var currentVal = sd.View.CurrentShowPosition;
+                    var totalSlides = g_PPT_PresentationToBeProjected.Slides.Count;
                     if (currentVal >= totalSlides)
                     {
                         KillApplications();
                         //Click on the floor to get focus
                         RippleCommonUtilities.HelperMethods.ClickOnFloorToGetFocus();
                         //Set focus for screen window also
-                        Utilities.Helper.ClickOnScreenToGetFocus();
+                        Helper.ClickOnScreenToGetFocus();
                     }
                     else
                     {
@@ -148,7 +145,7 @@ namespace RippleScreenApp.DocumentPresentation
                     }
                 }
             }
-            catch (System.Runtime.InteropServices.COMException ex)
+            catch (COMException ex)
             {
                 //Stop the application if the SlideShowWindow has closed.
                 //if(ex.Message.Contains("Integer out of range. 1 is not in the valid range of 1 to 0"))
@@ -158,7 +155,7 @@ namespace RippleScreenApp.DocumentPresentation
                 //Click on the floor to get focus
                 RippleCommonUtilities.HelperMethods.ClickOnFloorToGetFocus();
                 //Set focus for screen window also
-                Utilities.Helper.ClickOnScreenToGetFocus();
+                Helper.ClickOnScreenToGetFocus();
             }
             catch (Exception)
             {
@@ -175,7 +172,7 @@ namespace RippleScreenApp.DocumentPresentation
                     ((PowerPoint.SlideShowWindow)g_PPT_Application.SlideShowWindows._Index(1)).View.Previous();
                 }
             }
-            catch (System.Runtime.InteropServices.COMException)
+            catch (COMException)
             {
                 //Do nothing
             }

@@ -57,47 +57,47 @@ namespace RippleCalibration.Utilities.Gestures
         /// <param name="data">The skeleton data.</param>
         public void UpdateGesture(Body data)
         {
-            if (this.paused)
+            if (paused)
             {
-                if (this.frameCount == this.pausedFrameCount)
+                if (frameCount == pausedFrameCount)
                 {
-                    this.paused = false;
+                    paused = false;
                 }
 
-                this.frameCount++;
+                frameCount++;
             }
 
-            GesturePartResult result = this.gestureParts[this.currentGesturePart].CheckGesture(data);
+            var result = gestureParts[currentGesturePart].CheckGesture(data);
             if (result == GesturePartResult.Succeed)
             {
-                if (this.currentGesturePart + 1 < this.gestureParts.Length)
+                if (currentGesturePart + 1 < gestureParts.Length)
                 {
-                    this.currentGesturePart++;
-                    this.frameCount = 0;
-                    this.pausedFrameCount = 10;
-                    this.paused = true;
+                    currentGesturePart++;
+                    frameCount = 0;
+                    pausedFrameCount = 10;
+                    paused = true;
                 }
                 else
                 {
-                    if (this.GestureRecognized != null)
+                    if (GestureRecognized != null)
                     {
-                        this.GestureRecognized(this, new GestureEventArgs(this.name, data.TrackingId));
-                        this.Reset();
+                        GestureRecognized(this, new GestureEventArgs(name, data.TrackingId));
+                        Reset();
                     }
                 }
             }
-            else if (result == GesturePartResult.Fail || this.frameCount == 50)
+            else if (result == GesturePartResult.Fail || frameCount == 50)
             {
-                this.currentGesturePart = 0;
-                this.frameCount = 0;
-                this.pausedFrameCount = 5;
-                this.paused = true;
+                currentGesturePart = 0;
+                frameCount = 0;
+                pausedFrameCount = 5;
+                paused = true;
             }
             else
             {
-                this.frameCount++;
-                this.pausedFrameCount = 5;
-                this.paused = true;
+                frameCount++;
+                pausedFrameCount = 5;
+                paused = true;
             }
         }
 
@@ -106,10 +106,10 @@ namespace RippleCalibration.Utilities.Gestures
         /// </summary>
         public void Reset()
         {
-            this.currentGesturePart = 0;
-            this.frameCount = 0;
-            this.pausedFrameCount = 5;
-            this.paused = true;
+            currentGesturePart = 0;
+            frameCount = 0;
+            pausedFrameCount = 5;
+            paused = true;
         }
     }
 }

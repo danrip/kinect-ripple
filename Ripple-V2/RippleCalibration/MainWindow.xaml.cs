@@ -1,20 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
+using System.Reflection;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Animation;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Xml;
+using RippleCalibration.Utilities;
 
 namespace RippleCalibration
 {
@@ -43,14 +34,14 @@ namespace RippleCalibration
         public MainWindow()
         {
             InitializeComponent();
-            Utilities.KinectHelper kinectHelper = new Utilities.KinectHelper();
+            var kinectHelper = new KinectHelper();
             kinectHelper.PropertyChanged += kinectHelper_PropertyChanged;
             Globals.ResetCoordinates();
-            blinkStep0 = (Storyboard)this.MainGrid.FindResource("RectangleCyanBlink");
-            blinkStep10 = (Storyboard)this.MainGrid.FindResource("RectangleGreenBlink");
-            blinkStep100 = (Storyboard)this.MainGrid.FindResource("RectangleYellowBlink");
-            blinkStep1000 = (Storyboard)this.MainGrid.FindResource("RectangleRedBlink");
-            this.Loaded += MainWindow_Loaded;
+            blinkStep0 = (Storyboard)MainGrid.FindResource("RectangleCyanBlink");
+            blinkStep10 = (Storyboard)MainGrid.FindResource("RectangleGreenBlink");
+            blinkStep100 = (Storyboard)MainGrid.FindResource("RectangleYellowBlink");
+            blinkStep1000 = (Storyboard)MainGrid.FindResource("RectangleRedBlink");
+            Loaded += MainWindow_Loaded;
         }
 
         void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -64,14 +55,14 @@ namespace RippleCalibration
             blinkStep7 = blinkStep1000.Clone();
             blinkStep8 = blinkStep1000.Clone();
 
-            Storyboard.SetTarget(blinkStep1.Children[0], this.Step1a);
-            Storyboard.SetTarget(blinkStep2.Children[0], this.Step1b);
-            Storyboard.SetTarget(blinkStep3.Children[0], this.Step2a);
-            Storyboard.SetTarget(blinkStep4.Children[0], this.Step2b);
-            Storyboard.SetTarget(blinkStep5.Children[0], this.Step3a);
-            Storyboard.SetTarget(blinkStep6.Children[0], this.Step3b);
-            Storyboard.SetTarget(blinkStep7.Children[0], this.Step4a);
-            Storyboard.SetTarget(blinkStep8.Children[0], this.Step4b);
+            Storyboard.SetTarget(blinkStep1.Children[0], Step1a);
+            Storyboard.SetTarget(blinkStep2.Children[0], Step1b);
+            Storyboard.SetTarget(blinkStep3.Children[0], Step2a);
+            Storyboard.SetTarget(blinkStep4.Children[0], Step2b);
+            Storyboard.SetTarget(blinkStep5.Children[0], Step3a);
+            Storyboard.SetTarget(blinkStep6.Children[0], Step3b);
+            Storyboard.SetTarget(blinkStep7.Children[0], Step4a);
+            Storyboard.SetTarget(blinkStep8.Children[0], Step4b);
 
             blinkStep1.Begin();
             blinkStep2.Begin();
@@ -95,7 +86,7 @@ namespace RippleCalibration
 
         void kinectHelper_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            var kinectInfo = sender as Utilities.KinectHelper;
+            var kinectInfo = sender as KinectHelper;
             if (kinectInfo != null)
             {
                 if (e.PropertyName == "KinectSwipeDetected")
@@ -235,10 +226,10 @@ namespace RippleCalibration
 
         private void CreateXML()
         {
-            XmlDocument doc = new XmlDocument();
-            XmlElement root = doc.CreateElement("Ripple");
-            XmlElement floor = doc.CreateElement("Floor");
-            XmlElement id = doc.CreateElement("CalibrationConfiguration");
+            var doc = new XmlDocument();
+            var root = doc.CreateElement("Ripple");
+            var floor = doc.CreateElement("Floor");
+            var id = doc.CreateElement("CalibrationConfiguration");
 
             id.SetAttribute("FrontDistance", Convert.ToString(Globals.frontDistance));
             id.SetAttribute("BackDistance", Convert.ToString(Globals.backDistance));
@@ -251,7 +242,7 @@ namespace RippleCalibration
             root.AppendChild(floor);
             doc.AppendChild(root);
 
-            String calibXMLFilePath = GetCalibrationXMLPath();
+            var calibXMLFilePath = GetCalibrationXMLPath();
             try
             {
                 doc.Save(calibXMLFilePath);
@@ -264,19 +255,19 @@ namespace RippleCalibration
 
         private string GetCalibrationXMLPath()
         {
-            return System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + "\\..\\Calibration.xml";
+            return Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "\\..\\Calibration.xml";
         }
 
         private double CalculateLeftDistance()
         {
-            double distance = 0.00;
+            var distance = 0.00;
 
             distance = (Globals.A1 + Globals.A3) / 2;
             return distance;
         }
         private double CalculateRightDistance()
         {
-            double distance = 0.00;
+            var distance = 0.00;
 
             distance = (Globals.A2 + Globals.A4) / 2;
             return distance;
@@ -284,7 +275,7 @@ namespace RippleCalibration
 
         private double CalculateFrontDistance()
         {
-            double distance = 0.00;
+            var distance = 0.00;
 
             distance = (Globals.B1 + Globals.B2) / 2;
             return distance;
@@ -293,7 +284,7 @@ namespace RippleCalibration
 
         private double CalculateBackDistance()
         {
-            double distance = 0.00;
+            var distance = 0.00;
             distance = (Globals.B3 + Globals.B4) / 2;
             return distance;
         }
@@ -312,49 +303,49 @@ namespace RippleCalibration
 
         public double CalculatePointA1()
         {
-            double x = 0.00;
+            var x = 0.00;
             x = (5 * Globals.X1 - Globals.X2) / 4;
             return x;
         }
         public double CalculatePointB1()
         {
-            double y = 0.00;
+            var y = 0.00;
             y = (17 * Globals.Y1 - 3 * Globals.Y3) / 14;
             return y;
         }
         public double CalculatePointA2()
         {
-            double x = 0.00;
+            var x = 0.00;
             x = (5 * Globals.X2 - Globals.X1) / 4;
             return x;
         }
         public double CalculatePointB2()
         {
-            double y = 0.00;
+            var y = 0.00;
             y = (17 * Globals.Y2 - 3 * Globals.Y4) / 14;
             return y;
         }
         public double CalculatePointA3()
         {
-            double x = 0.00;
+            var x = 0.00;
             x = (5 * Globals.X3 - Globals.X4) / 4;
             return x;
         }
         public double CalculatePointB3()
         {
-            double y = 0.00;
+            var y = 0.00;
             y = (17 * Globals.Y3 - 3 * Globals.Y1) / 14;
             return y;
         }
         public double CalculatePointA4()
         {
-            double x = 0.00;
+            var x = 0.00;
             x = (5 * Globals.X4 - Globals.X3) / 4;
             return x;
         }
         public double CalculatePointB4()
         {
-            double y = 0.00;
+            var y = 0.00;
             y = (17 * Globals.Y4 - 3 * Globals.Y2) / 14;
             return y;
         }

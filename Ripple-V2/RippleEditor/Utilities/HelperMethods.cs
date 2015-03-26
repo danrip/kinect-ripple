@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
+using System.Reflection;
+using Microsoft.VisualBasic.FileIO;
+using RippleCommonUtilities;
+using RippleDictionary;
 
 namespace RippleEditor.Utilities
 {
@@ -11,7 +11,7 @@ namespace RippleEditor.Utilities
     {
         public static String CurrentDirectory
         {
-            get { return System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location); }
+            get { return Path.GetDirectoryName(Assembly.GetEntryAssembly().Location); }
         }
 
         public static String DefaultAssetsDirectory
@@ -62,18 +62,18 @@ namespace RippleEditor.Utilities
         /// <returns></returns>
         public static String CopyFile(String sourceFile, String targetFolder)
         {
-            String targetFileName = String.Empty;
+            var targetFileName = String.Empty;
             try
             {
-                if (!System.IO.Directory.Exists(targetFolder))
+                if (!Directory.Exists(targetFolder))
                 {
-                    System.IO.Directory.CreateDirectory(targetFolder);
+                    Directory.CreateDirectory(targetFolder);
                 }
-                targetFileName = targetFolder + "\\" + System.IO.Path.GetFileName(sourceFile);
-                System.IO.File.Copy(sourceFile, targetFileName, false);
+                targetFileName = targetFolder + "\\" + Path.GetFileName(sourceFile);
+                File.Copy(sourceFile, targetFileName, false);
                 return targetFileName;
             }
-            catch (System.IO.IOException ex)
+            catch (IOException ex)
             {
                 if (ex.Message.Contains("already exists"))
                     return targetFileName;
@@ -82,7 +82,7 @@ namespace RippleEditor.Utilities
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in CopyFile({0},  {1}) {2}", sourceFile, targetFolder, ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in CopyFile({0},  {1}) {2}", sourceFile, targetFolder, ex.Message);
                 return String.Empty;
             }
         }
@@ -98,7 +98,7 @@ namespace RippleEditor.Utilities
             try
             {
                 targetFolder = targetFolder + sourceFolder.Substring(sourceFolder.LastIndexOf("\\"));
-                Microsoft.VisualBasic.FileIO.FileSystem.CopyDirectory(sourceFolder, targetFolder, true);
+                FileSystem.CopyDirectory(sourceFolder, targetFolder, true);
                 //System.IO.Directory.
                 //Process proc = new Process();
                 //proc.StartInfo.UseShellExecute = false;
@@ -110,7 +110,7 @@ namespace RippleEditor.Utilities
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in CopyFolder({0}, {1}) : {2}", sourceFolder, targetFolder, ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in CopyFolder({0}, {1}) : {2}", sourceFolder, targetFolder, ex.Message);
                 return null;
             }
         }
@@ -120,9 +120,9 @@ namespace RippleEditor.Utilities
         /// </summary>
         /// <param name="TileID"></param>
         /// <returns></returns>
-        public static RippleDictionary.Tile GetFloorTileForID(string TileID)
+        public static Tile GetFloorTileForID(string TileID)
         {
-            RippleDictionary.Tile reqdTile = null;
+            Tile reqdTile = null;
             try
             {
                 reqdTile = MainPage.rippleData.Floor.Tiles[TileID];

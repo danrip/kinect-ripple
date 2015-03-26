@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace RippleFloorApp.Utilities.KinectGestures
+﻿namespace RippleFloorApp.Utilities.KinectGestures
 {
     /// <summary>
     /// the gesture part result

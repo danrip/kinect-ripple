@@ -2,8 +2,8 @@
 using System.Security.Permissions;
 using System.Runtime.InteropServices;
 using System.ComponentModel;
-using System.Collections.Generic;
 using System.Speech.Synthesis;
+using RippleCommonUtilities;
 
 namespace RippleFloorApp.Utilities
 {
@@ -68,30 +68,30 @@ namespace RippleFloorApp.Utilities
         FloorWindow mExternalWPF;
         public ScriptingHelper(FloorWindow w)
         {
-            this.mExternalWPF = w;
+            mExternalWPF = w;
         }
         
         public void MessageReceived(String messageParam)
         {
             try
             {
-                this.mExternalWPF.browserElement.Document.InvokeScript("executeCommandFromScreen", new Object[]{messageParam});
+                mExternalWPF.BrowserElement.Document.InvokeScript("executeCommandFromScreen", new Object[]{messageParam});
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in MessageReceived of scripting Helper for Floor {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in MessageReceived of scripting Helper for Floor {0}", ex.Message);
             }
         }
 
-        public void GestureReceived(RippleCommonUtilities.GestureTypes ges)
+        public void GestureReceived(GestureTypes ges)
         {
             try
             {
-                this.mExternalWPF.browserElement.Document.InvokeScript("gestureReceived", new object[] { ges.ToString()});
+                mExternalWPF.BrowserElement.Document.InvokeScript("gestureReceived", new object[] { ges.ToString()});
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in GestureReceived {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in GestureReceived {0}", ex.Message);
             }
         }
 
@@ -100,8 +100,8 @@ namespace RippleFloorApp.Utilities
             //RippleCommonUtilities.LoggingHelper.LogTrace(1, "Command Recieved {0} with Parameters {1}", commandText, commandParameters);
             try
             {
-                String[] parameters = commandParameters.Split(new Char[] { ',' });
-                bool commandExecuted = false;
+                var parameters = commandParameters.Split(new Char[] { ',' });
+                var commandExecuted = false;
                 exitGame = false;
                 exitOnStart = false;
                 switch (commandText)
@@ -136,19 +136,19 @@ namespace RippleFloorApp.Utilities
                         commandExecuted = true;
                         break;
                     case "logMessage":
-                        RippleCommonUtilities.LoggingHelper.LogTrace(1, "Log Message from HTML {0}", commandParameters);
+                        LoggingHelper.LogTrace(1, "Log Message from HTML {0}", commandParameters);
                         commandExecuted = true;
                         break;
                 }
                 if (!commandExecuted)
                 {
-                    RippleCommonUtilities.LoggingHelper.LogTrace(1, "Command {0} with Parameters {1} not Supported", commandText, commandParameters);
+                    LoggingHelper.LogTrace(1, "Command {0} with Parameters {1} not Supported", commandText, commandParameters);
 
                 }
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in executeCommand for Scripting helper {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in executeCommand for Scripting helper {0}", ex.Message);
             }
 
         }
@@ -164,7 +164,7 @@ namespace RippleFloorApp.Utilities
 
         void bg_DoWork(object sender, DoWorkEventArgs e)
         {
-            using (SpeechSynthesizer synClass = new SpeechSynthesizer())
+            using (var synClass = new SpeechSynthesizer())
             {
                 synClass.SetOutputToDefaultAudioDevice();
                 synClass.Volume = 100;

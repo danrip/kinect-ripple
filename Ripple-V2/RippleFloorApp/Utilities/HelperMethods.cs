@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 
 namespace RippleFloorApp.Utilities
 {
     public static class HelperMethods
     {
-        public static string GetAssetURI(string Content)
+        public static string GetAssetUri(string content)
         {
-            return System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + "\\.." + Content;
+            var currentDirectory = Directory.GetCurrentDirectory();
+            var result = Path.GetFullPath(currentDirectory + content);
+            
+            return result; 
         }
     }
 }

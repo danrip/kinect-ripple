@@ -1,23 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
+using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Net.Mail;
 using System.ServiceProcess;
-using System.Text;
-using System.Threading.Tasks;
+using System.Timers;
 using System.Xml.Serialization;
+using MicrosoftIT.ManagedLogging;
+using RippleLocalService.Utilities;
 
 namespace RippleLocalService
 {
     public partial class RippleService : ServiceBase
     {
-        private System.Timers.Timer iRippleWindowsServiceTimer = null;
-        private System.Timers.Timer iRippleWindowsServiceTimer2 = null;
+        private Timer iRippleWindowsServiceTimer = null;
+        private Timer iRippleWindowsServiceTimer2 = null;
         private static List<String> fileListToBeDeleted = new List<string>();
 
         private static String TelemetryFilePath
@@ -31,23 +29,23 @@ namespace RippleLocalService
         }
 
         //Update period for Telemetry and emailing log files
-        private static int UpdateIntervalInMinutesForTelemetry = Convert.ToInt16(System.Configuration.ConfigurationManager.AppSettings["UpdateIntervalInMinutesForTelemetry"]);
+        private static int UpdateIntervalInMinutesForTelemetry = Convert.ToInt16(ConfigurationManager.AppSettings["UpdateIntervalInMinutesForTelemetry"]);
         //Update period for Quiz Update
-        private static int UpdateIntervalInMinutesForQuiz = Convert.ToInt16(System.Configuration.ConfigurationManager.AppSettings["UpdateIntervalInMinutesForQuiz"]);
+        private static int UpdateIntervalInMinutesForQuiz = Convert.ToInt16(ConfigurationManager.AppSettings["UpdateIntervalInMinutesForQuiz"]);
  
 
         //Telemetry and Feedback variables
-        private static String TargetTableName = System.Configuration.ConfigurationManager.AppSettings["TelemetryTargetTableName"];
-        private static String FeedbackTargetTableName = System.Configuration.ConfigurationManager.AppSettings["FeedbackTargetTableName"];
-        private static String TargetDatabaseName = System.Configuration.ConfigurationManager.AppSettings["TargetDatabaseName"];
-        private static String TargetServerName = System.Configuration.ConfigurationManager.AppSettings["TargetServerName"];
+        private static String TargetTableName = ConfigurationManager.AppSettings["TelemetryTargetTableName"];
+        private static String FeedbackTargetTableName = ConfigurationManager.AppSettings["FeedbackTargetTableName"];
+        private static String TargetDatabaseName = ConfigurationManager.AppSettings["TargetDatabaseName"];
+        private static String TargetServerName = ConfigurationManager.AppSettings["TargetServerName"];
 
         //Email Variables
-        private static String SMTPServerName = System.Configuration.ConfigurationManager.AppSettings["SMTPServer"];
-        private static String EmailTo = System.Configuration.ConfigurationManager.AppSettings["EmailTo"];
-        private static String EmailFrom = System.Configuration.ConfigurationManager.AppSettings["EmailFrom"];
-        private static String EmailSubject = System.Configuration.ConfigurationManager.AppSettings["EmailSubject"];
-        private static String EmailBody = System.Configuration.ConfigurationManager.AppSettings["EmailBody"];
+        private static String SMTPServerName = ConfigurationManager.AppSettings["SMTPServer"];
+        private static String EmailTo = ConfigurationManager.AppSettings["EmailTo"];
+        private static String EmailFrom = ConfigurationManager.AppSettings["EmailFrom"];
+        private static String EmailSubject = ConfigurationManager.AppSettings["EmailSubject"];
+        private static String EmailBody = ConfigurationManager.AppSettings["EmailBody"];
 
 
         public RippleService()
@@ -60,28 +58,28 @@ namespace RippleLocalService
         protected override void OnStart(string[] args)
         {
             //Initialize Timer to work for Telemetry and logs
-            iRippleWindowsServiceTimer = new System.Timers.Timer(UpdateIntervalInMinutesForTelemetry * 60 * 1000);
-            iRippleWindowsServiceTimer.Elapsed += new System.Timers.ElapsedEventHandler(this.RippleWindowsServiceTimer_Tick);
+            iRippleWindowsServiceTimer = new Timer(UpdateIntervalInMinutesForTelemetry * 60 * 1000);
+            iRippleWindowsServiceTimer.Elapsed += new ElapsedEventHandler(RippleWindowsServiceTimer_Tick);
             iRippleWindowsServiceTimer.Enabled = true;
 
             //Initialize Timer to work for Quiz Data Update
-            iRippleWindowsServiceTimer2 = new System.Timers.Timer(UpdateIntervalInMinutesForQuiz * 60 * 1000);
-            iRippleWindowsServiceTimer2.Elapsed += new System.Timers.ElapsedEventHandler(this.RippleWindowsServiceTimer2_Tick);
+            iRippleWindowsServiceTimer2 = new Timer(UpdateIntervalInMinutesForQuiz * 60 * 1000);
+            iRippleWindowsServiceTimer2.Elapsed += new ElapsedEventHandler(RippleWindowsServiceTimer2_Tick);
             iRippleWindowsServiceTimer2.Enabled = true;
 
             //Initialize event logging
-            MicrosoftIT.ManagedLogging.LogManager.StartLogging("RippleLocalService");
+            LogManager.StartLogging("RippleLocalService");
 
-            MicrosoftIT.ManagedLogging.LogManager.LogTrace(1, "Ripple Local Service Started");
+            LogManager.LogTrace(1, "Ripple Local Service Started");
 
         }
 
         protected override void OnStop()
         {
-            MicrosoftIT.ManagedLogging.LogManager.StopLogging();
+            LogManager.StopLogging();
         }
 
-        private void RippleWindowsServiceTimer_Tick(object sender, System.Timers.ElapsedEventArgs e)
+        private void RippleWindowsServiceTimer_Tick(object sender, ElapsedEventArgs e)
         {
             try
             {
@@ -89,7 +87,7 @@ namespace RippleLocalService
                 //iRippleWindowsServiceTimer2.Enabled = false;
 
                 //Log tick event
-                MicrosoftIT.ManagedLogging.LogManager.LogTrace(1, "Tick Event for Telemetry in Service {0}", DateTime.Now);
+                LogManager.LogTrace(1, "Tick Event for Telemetry in Service {0}", DateTime.Now);
 
                 //Work
                 //Telemetry
@@ -103,13 +101,13 @@ namespace RippleLocalService
             }
             catch (Exception ex)
             {
-                MicrosoftIT.ManagedLogging.LogManager.LogTrace(1, "Went wrong in Ripple Service Tick Event for Telemetry {0}", ex.Message);
+                LogManager.LogTrace(1, "Went wrong in Ripple Service Tick Event for Telemetry {0}", ex.Message);
                 iRippleWindowsServiceTimer.Enabled = true;
                 //iRippleWindowsServiceTimer2.Enabled = true;
             }
         }
 
-        private void RippleWindowsServiceTimer2_Tick(object sender, System.Timers.ElapsedEventArgs e)
+        private void RippleWindowsServiceTimer2_Tick(object sender, ElapsedEventArgs e)
         {
             try
             {
@@ -117,7 +115,7 @@ namespace RippleLocalService
                 iRippleWindowsServiceTimer2.Enabled = false;
 
                 //Log tick event
-                MicrosoftIT.ManagedLogging.LogManager.LogTrace(1, "Tick Event for Quiz in Service {0}", DateTime.Now);
+                LogManager.LogTrace(1, "Tick Event for Quiz in Service {0}", DateTime.Now);
 
                 //Work
                 //Quiz answers
@@ -128,7 +126,7 @@ namespace RippleLocalService
             }
             catch (Exception ex)
             {
-                MicrosoftIT.ManagedLogging.LogManager.LogTrace(1, "Went wrong in Ripple Service Tick Event for Quiz {0}", ex.Message);
+                LogManager.LogTrace(1, "Went wrong in Ripple Service Tick Event for Quiz {0}", ex.Message);
                 //iRippleWindowsServiceTimer.Enabled = true;
                 iRippleWindowsServiceTimer2.Enabled = true;
             }
@@ -145,18 +143,18 @@ namespace RippleLocalService
                 {
                     try
                     {
-                        System.IO.File.Delete(t);
+                        File.Delete(t);
                         fileListToBeDeleted.Remove(t);
                     }
                     catch (Exception ex)
                     {
-                        MicrosoftIT.ManagedLogging.LogManager.LogTrace(1, "Went wrong in Delete file {0}", ex.Message);
+                        LogManager.LogTrace(1, "Went wrong in Delete file {0}", ex.Message);
                     }
                 }
             }
             catch (Exception ex)
             {
-                MicrosoftIT.ManagedLogging.LogManager.LogTrace(1, "Went wrong in deleting the ETL files {0}", ex.Message);
+                LogManager.LogTrace(1, "Went wrong in deleting the ETL files {0}", ex.Message);
             }
         }
 
@@ -164,8 +162,8 @@ namespace RippleLocalService
         {
             try
             {
-                Utilities.EmailSender message = new Utilities.EmailSender(SMTPServerName, EmailTo, EmailFrom, EmailSubject);
-                var fileList = System.IO.Directory.EnumerateFiles(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "Ripple"), "*.etl", SearchOption.TopDirectoryOnly);
+                var message = new EmailSender(SMTPServerName, EmailTo, EmailFrom, EmailSubject);
+                var fileList = Directory.EnumerateFiles(Path.Combine(Path.GetTempPath(), "Ripple"), "*.etl", SearchOption.TopDirectoryOnly);
                 foreach (var t in fileList)
                 {
                     try
@@ -176,7 +174,7 @@ namespace RippleLocalService
                     }
                     catch (Exception ex)
                     {
-                        MicrosoftIT.ManagedLogging.LogManager.LogTrace(1, "Went wrong in Emailing ETL files {0}", ex.Message);
+                        LogManager.LogTrace(1, "Went wrong in Emailing ETL files {0}", ex.Message);
                     }
                 }
                 message.sendmail(EmailBody);
@@ -184,13 +182,13 @@ namespace RippleLocalService
             }
             catch (Exception ex)
             {
-                MicrosoftIT.ManagedLogging.LogManager.LogTrace(1,"Went wrong in sending the ETL files {0}", ex.Message);
+                LogManager.LogTrace(1,"Went wrong in sending the ETL files {0}", ex.Message);
             }
         }
 
         private void UpdateTelemetry()
         {
-            DataSet telemetryData = new DataSet();
+            var telemetryData = new DataSet();
             XmlSerializer reader;
             StreamReader telemetryFile = null;
             try
@@ -204,11 +202,11 @@ namespace RippleLocalService
                     telemetryFile.Dispose();
 
                     //Insert in the Database
-                    using (SqlConnection sqlConn = new SqlConnection(GetConnectionString()))
+                    using (var sqlConn = new SqlConnection(GetConnectionString()))
                     {
                         sqlConn.Open();
                         //Insert the new data
-                        using (SqlBulkCopy bulkCopy = new SqlBulkCopy(sqlConn))
+                        using (var bulkCopy = new SqlBulkCopy(sqlConn))
                         {
                             bulkCopy.DestinationTableName = TargetTableName;
 
@@ -230,13 +228,13 @@ namespace RippleLocalService
                     telemetryFile.Close();
                     telemetryFile.Dispose();
                 }
-                MicrosoftIT.ManagedLogging.LogManager.LogTrace(1,"Went wrong in uploading the telemetry data to teh database {0}", ex.Message);
+                LogManager.LogTrace(1,"Went wrong in uploading the telemetry data to teh database {0}", ex.Message);
             }
         }
 
         private void UpdateQuizAnswers()
         {
-            DataSet quiAnswersData = new DataSet();
+            var quiAnswersData = new DataSet();
             XmlSerializer reader;
             StreamReader quizAnswersFile = null;
             try
@@ -250,11 +248,11 @@ namespace RippleLocalService
                     quizAnswersFile.Dispose();
 
                     //Insert in the Database
-                    using (SqlConnection sqlConn = new SqlConnection(GetConnectionString()))
+                    using (var sqlConn = new SqlConnection(GetConnectionString()))
                     {
                         sqlConn.Open();
                         //Insert the new data
-                        using (SqlBulkCopy bulkCopy = new SqlBulkCopy(sqlConn))
+                        using (var bulkCopy = new SqlBulkCopy(sqlConn))
                         {
                             bulkCopy.DestinationTableName = FeedbackTargetTableName;
 
@@ -276,13 +274,13 @@ namespace RippleLocalService
                     quizAnswersFile.Close();
                     quizAnswersFile.Dispose();
                 }
-                MicrosoftIT.ManagedLogging.LogManager.LogTrace(1, "Went wrong in uploading the telemetry data to the database {0}", ex.Message);
+                LogManager.LogTrace(1, "Went wrong in uploading the telemetry data to the database {0}", ex.Message);
             }
         }
 
         private String GetConnectionString()
         {
-            SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
+            var builder = new SqlConnectionStringBuilder();
             builder.InitialCatalog = TargetDatabaseName;
             builder.DataSource = TargetServerName;
             builder.IntegratedSecurity = true;

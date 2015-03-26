@@ -1,18 +1,17 @@
-﻿using RippleDictionary;
+﻿using System.IO;
+using System.Windows.Forms;
+using RippleCommonUtilities;
+using RippleDictionary;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using RippleEditor.Utilities;
+using ComboBox = System.Windows.Controls.ComboBox;
+using HelperMethods = RippleEditor.Utilities.HelperMethods;
+using MessageBox = System.Windows.MessageBox;
+using TextBox = System.Windows.Controls.TextBox;
+using UserControl = System.Windows.Controls.UserControl;
 
 namespace RippleEditor.Controls
 {
@@ -33,49 +32,49 @@ namespace RippleEditor.Controls
             try
             {
                 //Populate the tile types - default text
-                this.CBTypeValue.Items.Clear();
-                foreach (var typeName in Enum.GetNames(typeof(RippleDictionary.TileType)))
+                CBTypeValue.Items.Clear();
+                foreach (var typeName in Enum.GetNames(typeof(TileType)))
                 {
-                    this.CBTypeValue.Items.Add(typeName);
+                    CBTypeValue.Items.Add(typeName);
                 }
-                this.CBTypeValue.SelectedValue = RippleDictionary.TileType.Text.ToString();
+                CBTypeValue.SelectedValue = TileType.Text.ToString();
 
                 //Populate the Action types - default standard
-                this.CBActionValue.Items.Clear();
+                CBActionValue.Items.Clear();
                 foreach (var actionName in Enum.GetNames(typeof(TileAction)))
                 {
-                    this.CBActionValue.Items.Add(actionName);
+                    CBActionValue.Items.Add(actionName);
                 }
-                this.CBActionValue.SelectedValue = TileAction.Standard.ToString();
+                CBActionValue.SelectedValue = TileAction.Standard.ToString();
 
                 //Initialize the text boxes
-                this.ActionURIBrowseButton.IsEnabled = false;
-                this.clrPicker.SelectedColor = (Color)ColorConverter.ConvertFromString("#FFFFFFFF");
-                this.TBTextValue.Text = "";
-                this.TBActionURIValue.Text = "";
-                this.TBContentValue.Text = "";
-                this.TBActionURIValue.ToolTip = "";
-                this.TBContentValue.ToolTip = "";
-                this.ContentBrowseButton.IsEnabled = false;
-                this.TBActionURIValue.IsReadOnly = true;
-                this.TBActionURIValue.IsReadOnlyCaretVisible = true;
-                this.TBActionURIValue.Text = "";
-                this.TBActionURIValue.ToolTip = "";
+                ActionURIBrowseButton.IsEnabled = false;
+                clrPicker.SelectedColor = (Color)ColorConverter.ConvertFromString("#FFFFFFFF");
+                TBTextValue.Text = "";
+                TBActionURIValue.Text = "";
+                TBContentValue.Text = "";
+                TBActionURIValue.ToolTip = "";
+                TBContentValue.ToolTip = "";
+                ContentBrowseButton.IsEnabled = false;
+                TBActionURIValue.IsReadOnly = true;
+                TBActionURIValue.IsReadOnlyCaretVisible = true;
+                TBActionURIValue.Text = "";
+                TBActionURIValue.ToolTip = "";
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in InitializeControls for Floor Properties: {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in InitializeControls for Floor Properties: {0}", ex.Message);
             }
         }
 
         private bool ValidateTextValue(object sender)
         {
-            TextBox tb = sender as TextBox;
+            var tb = sender as TextBox;
             if (!String.IsNullOrEmpty(tb.Text))
             {
-                if (tb.Text.Length > Utilities.Constants.MaxCharForTileName)
+                if (tb.Text.Length > Constants.MaxCharForTileName)
                 {
-                    MessageBox.Show(String.Format("The name for the tile cannot exceed {0} characters", Utilities.Constants.MaxCharForTileName));
+                    MessageBox.Show(String.Format("The name for the tile cannot exceed {0} characters", Constants.MaxCharForTileName));
                     tb.Text = "";
                     return false;
                 }
@@ -88,16 +87,16 @@ namespace RippleEditor.Controls
             try
             {
                 //Text value can be empty, or any value less than Utilities.Constants.MaxCharValue
-                if (!ValidateTextValue(this.TBTextValue))
+                if (!ValidateTextValue(TBTextValue))
                     return false;
 
                 //Color value can be any value right now
 
                 //Combo box for Type
                 //Content is mandatory for anything except Text and blank
-                if (!this.CBTypeValue.SelectedValue.Equals(RippleDictionary.TileType.Text.ToString()))
+                if (!CBTypeValue.SelectedValue.Equals(TileType.Text.ToString()))
                 {
-                    if (String.IsNullOrEmpty(this.TBContentValue.Text))
+                    if (String.IsNullOrEmpty(TBContentValue.Text))
                     {
                         MessageBox.Show("Please select a valid URI for Tile Content in Floor Properties");
                         return false;
@@ -106,19 +105,19 @@ namespace RippleEditor.Controls
 
                 //Combo box for Action
                 //Content is mandatory for Animation and QRCode
-                if (this.CBActionValue.SelectedValue.ToString().Equals(TileAction.HTML.ToString()) || this.CBActionValue.SelectedValue.Equals(TileAction.QRCode.ToString()))
+                if (CBActionValue.SelectedValue.ToString().Equals(TileAction.HTML.ToString()) || CBActionValue.SelectedValue.Equals(TileAction.QRCode.ToString()))
                 {
-                    if (String.IsNullOrEmpty(this.TBActionURIValue.Text))
+                    if (String.IsNullOrEmpty(TBActionURIValue.Text))
                     {
                         MessageBox.Show("Please select a valid URI for Tile Action Content in Floor Properties");
                         return false;
                     }
 
                     //Validate the content value
-                    String actionContent = this.TBActionURIValue.Text;
+                    var actionContent = TBActionURIValue.Text;
 
                     //Animation - local and web
-                    if(this.CBActionValue.SelectedValue.ToString().Equals(TileAction.HTML.ToString()))
+                    if(CBActionValue.SelectedValue.ToString().Equals(TileAction.HTML.ToString()))
                     {
                         if (!actionContent.StartsWith("http") && (!(actionContent.EndsWith(".htm") || actionContent.EndsWith(".html"))))
                         {
@@ -128,7 +127,7 @@ namespace RippleEditor.Controls
                     }
 
                     //QRCode - web urls only
-                    if (this.CBActionValue.SelectedValue.ToString().Equals(TileAction.QRCode.ToString()))
+                    if (CBActionValue.SelectedValue.ToString().Equals(TileAction.QRCode.ToString()))
                     {
                         if (!actionContent.StartsWith("http"))
                         {
@@ -141,110 +140,110 @@ namespace RippleEditor.Controls
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in ValidateControl for Floor Properties: {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in ValidateControl for Floor Properties: {0}", ex.Message);
                 return false;
             }
         }
 
-        public void SaveFloorProperties(RippleDictionary.Tile tile)
+        public void SaveFloorProperties(Tile tile)
         {
             try
             {
                 //Name
-                tile.Name = this.TBTextValue.Text;
+                tile.Name = TBTextValue.Text;
                 //Tile type
-                tile.TileType = (RippleDictionary.TileType)this.CBTypeValue.SelectedIndex;
+                tile.TileType = (TileType)CBTypeValue.SelectedIndex;
                 //Content
-                tile.Content = this.TBContentValue.Text;
+                tile.Content = TBContentValue.Text;
                 //Color
-                tile.Color = this.clrPicker.SelectedColor;
+                tile.Color = clrPicker.SelectedColor;
                 //Action Type
-                tile.Action = (TileAction)this.CBActionValue.SelectedIndex;
+                tile.Action = (TileAction)CBActionValue.SelectedIndex;
                 //Action Content
-                tile.ActionURI = this.TBActionURIValue.Text;
+                tile.ActionURI = TBActionURIValue.Text;
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in SaveFloorProperties for Floor Properties: {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in SaveFloorProperties for Floor Properties: {0}", ex.Message);
             }
         }
 
-        public void SetFloorProperties(RippleDictionary.Tile tile)
+        public void SetFloorProperties(Tile tile)
         {
             try
             {
                 //Text
-                this.TBTextValue.Text = tile.Name;
+                TBTextValue.Text = tile.Name;
             
                 //Color
-                this.clrPicker.SelectedColor = tile.Color;
+                clrPicker.SelectedColor = tile.Color;
 
                 //Tile Type
-                this.CBTypeValue.SelectedValue = tile.TileType.ToString();
+                CBTypeValue.SelectedValue = tile.TileType.ToString();
 
                 //Tile content
                 if ((!String.IsNullOrEmpty(tile.Content)) && (tile.Content.StartsWith(@"\Assets\")))
-                    this.TBContentValue.Text = Utilities.HelperMethods.TargetAssetsRoot + tile.Content;
+                    TBContentValue.Text = HelperMethods.TargetAssetsRoot + tile.Content;
                 else
-                    this.TBContentValue.Text = tile.Content;
+                    TBContentValue.Text = tile.Content;
 
                 //Action type
-                this.CBActionValue.SelectedValue = tile.Action.ToString();                
+                CBActionValue.SelectedValue = tile.Action.ToString();                
 
                 //Action content
                 if ((!String.IsNullOrEmpty(tile.ActionURI)) && (tile.ActionURI.StartsWith(@"\Assets\")))
-                    this.TBActionURIValue.Text = Utilities.HelperMethods.TargetAssetsRoot + tile.ActionURI;
+                    TBActionURIValue.Text = HelperMethods.TargetAssetsRoot + tile.ActionURI;
                 else
-                    this.TBActionURIValue.Text = tile.ActionURI;
+                    TBActionURIValue.Text = tile.ActionURI;
 
                 //UI settings
                 //Content browse button
-                if (CBTypeValue.SelectedValue.ToString().Equals(RippleDictionary.TileType.Text.ToString()))
+                if (CBTypeValue.SelectedValue.ToString().Equals(TileType.Text.ToString()))
                 {
-                    this.ContentBrowseButton.IsEnabled = false;
+                    ContentBrowseButton.IsEnabled = false;
                 }
                 else
                 {
-                    this.ContentBrowseButton.IsEnabled = true;
+                    ContentBrowseButton.IsEnabled = true;
                 }
 
                 //Action URI browse button and textbox
                 if (CBActionValue.SelectedValue.ToString().Equals(TileAction.HTML.ToString()))
                 {
-                    this.ActionURIBrowseButton.IsEnabled = true;
-                    this.TBActionURIValue.IsReadOnly = true;
-                    this.TBActionURIValue.IsReadOnlyCaretVisible = true;
+                    ActionURIBrowseButton.IsEnabled = true;
+                    TBActionURIValue.IsReadOnly = true;
+                    TBActionURIValue.IsReadOnlyCaretVisible = true;
                 }
                 else if (CBActionValue.SelectedValue.ToString().Equals(TileAction.QRCode.ToString()))
                 {
-                    this.ActionURIBrowseButton.IsEnabled = false;
-                    this.TBActionURIValue.IsReadOnly = false;
-                    this.TBActionURIValue.IsReadOnlyCaretVisible = false;
+                    ActionURIBrowseButton.IsEnabled = false;
+                    TBActionURIValue.IsReadOnly = false;
+                    TBActionURIValue.IsReadOnlyCaretVisible = false;
                 }
                 else
                 {
-                    this.ActionURIBrowseButton.IsEnabled = false;
-                    this.TBActionURIValue.IsReadOnly = true;
-                    this.TBActionURIValue.IsReadOnlyCaretVisible = true;
+                    ActionURIBrowseButton.IsEnabled = false;
+                    TBActionURIValue.IsReadOnly = true;
+                    TBActionURIValue.IsReadOnlyCaretVisible = true;
                 }
 
                 //Custom disablement for start
                 if (tile.Id.Equals("Tile0"))
                 {
-                    this.TBTextValue.IsEnabled = false;
-                    this.CBTypeValue.IsEnabled = false;
-                    this.CBActionValue.IsEnabled = false;
+                    TBTextValue.IsEnabled = false;
+                    CBTypeValue.IsEnabled = false;
+                    CBActionValue.IsEnabled = false;
                 }
                 else
                 {
-                    this.TBTextValue.IsEnabled = true;
-                    this.CBTypeValue.IsEnabled = true;
-                    this.CBActionValue.IsEnabled = true;
+                    TBTextValue.IsEnabled = true;
+                    CBTypeValue.IsEnabled = true;
+                    CBActionValue.IsEnabled = true;
                 }
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in SetFloorProperties for Floor Properties: {0}", ex.Message);                
+                LoggingHelper.LogTrace(1, "Went wrong in SetFloorProperties for Floor Properties: {0}", ex.Message);                
             }
         } 
         #endregion
@@ -254,22 +253,22 @@ namespace RippleEditor.Controls
         {
             try
             {
-                ComboBox cb = sender as ComboBox;
+                var cb = sender as ComboBox;
                 if (cb.SelectedValue != null)
                 {
-                    if (cb.SelectedValue.ToString().Equals(RippleDictionary.TileType.Text.ToString()))
+                    if (cb.SelectedValue.ToString().Equals(TileType.Text.ToString()))
                     {
-                        this.ContentBrowseButton.IsEnabled = false;
+                        ContentBrowseButton.IsEnabled = false;
                     }
                     else
                     {
-                        this.ContentBrowseButton.IsEnabled = true;
+                        ContentBrowseButton.IsEnabled = true;
                     }
                 }
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in CBTypeValue_SelectionChanged for Floor Properties: {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in CBTypeValue_SelectionChanged for Floor Properties: {0}", ex.Message);
             }
         }
 
@@ -277,38 +276,38 @@ namespace RippleEditor.Controls
         {
             try
             {
-                ComboBox cb = sender as ComboBox;
+                var cb = sender as ComboBox;
                 if (cb.SelectedValue != null)
                 {
                     if (cb.SelectedValue.ToString().Equals(TileAction.HTML.ToString()))
                     {
-                        this.ActionURIBrowseButton.IsEnabled = true;
-                        this.TBActionURIValue.IsReadOnlyCaretVisible = false;
-                        this.TBActionURIValue.IsReadOnly = false;
-                        this.TBActionURIValue.Text = "";
-                        this.TBActionURIValue.ToolTip = "";
+                        ActionURIBrowseButton.IsEnabled = true;
+                        TBActionURIValue.IsReadOnlyCaretVisible = false;
+                        TBActionURIValue.IsReadOnly = false;
+                        TBActionURIValue.Text = "";
+                        TBActionURIValue.ToolTip = "";
                     }
                     else if (cb.SelectedValue.ToString().Equals(TileAction.QRCode.ToString()))
                     {
-                        this.ActionURIBrowseButton.IsEnabled = false;
-                        this.TBActionURIValue.IsReadOnlyCaretVisible = false;
-                        this.TBActionURIValue.IsReadOnly = false;
-                        this.TBActionURIValue.Text = "";
-                        this.TBActionURIValue.ToolTip = "";
+                        ActionURIBrowseButton.IsEnabled = false;
+                        TBActionURIValue.IsReadOnlyCaretVisible = false;
+                        TBActionURIValue.IsReadOnly = false;
+                        TBActionURIValue.Text = "";
+                        TBActionURIValue.ToolTip = "";
                     }
                     else
                     {
-                        this.ActionURIBrowseButton.IsEnabled = false;
-                        this.TBActionURIValue.IsReadOnly = true;
-                        this.TBActionURIValue.IsReadOnlyCaretVisible = true;
-                        this.TBActionURIValue.Text = "";
-                        this.TBActionURIValue.ToolTip = "";
+                        ActionURIBrowseButton.IsEnabled = false;
+                        TBActionURIValue.IsReadOnly = true;
+                        TBActionURIValue.IsReadOnlyCaretVisible = true;
+                        TBActionURIValue.Text = "";
+                        TBActionURIValue.ToolTip = "";
                     }
                 }
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in CBActionValue_SelectionChanged for Floor Properties: {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in CBActionValue_SelectionChanged for Floor Properties: {0}", ex.Message);
             }
         }
 
@@ -317,33 +316,33 @@ namespace RippleEditor.Controls
             try
             {
                 //Show the dialog box only if Animation mode
-                if (this.CBActionValue.SelectedValue.ToString() == TileAction.HTML.ToString())
+                if (CBActionValue.SelectedValue.ToString() == TileAction.HTML.ToString())
                 {
-                    System.Windows.Forms.OpenFileDialog dlgBox = new System.Windows.Forms.OpenFileDialog();
+                    var dlgBox = new OpenFileDialog();
                     dlgBox.Filter = "Animation files(*.swf;*.html;*.htm;)|*.swf;*.html;*.htm;";
                     var res = dlgBox.ShowDialog();
-                    if (res == System.Windows.Forms.DialogResult.OK)
+                    if (res == DialogResult.OK)
                     {
                         //Get the complete fileName
-                        String updatedFileName = dlgBox.FileName;
-                        if (System.IO.Path.GetExtension(updatedFileName).ToLower().Equals(".swf"))
+                        var updatedFileName = dlgBox.FileName;
+                        if (Path.GetExtension(updatedFileName).ToLower().Equals(".swf"))
                         {
-                            updatedFileName = Utilities.HelperMethods.CopyFile(dlgBox.FileName, Utilities.HelperMethods.TargetAssetsDirectory + "\\Animations");
+                            updatedFileName = HelperMethods.CopyFile(dlgBox.FileName, HelperMethods.TargetAssetsDirectory + "\\Animations");
                         }
                         else
                         {
-                            String targetfolder = Utilities.HelperMethods.CopyFolder(System.IO.Path.GetDirectoryName(updatedFileName), Utilities.HelperMethods.TargetAssetsDirectory + "\\Animations");
-                            updatedFileName = targetfolder + "\\" + System.IO.Path.GetFileName(updatedFileName);
+                            var targetfolder = HelperMethods.CopyFolder(Path.GetDirectoryName(updatedFileName), HelperMethods.TargetAssetsDirectory + "\\Animations");
+                            updatedFileName = targetfolder + "\\" + Path.GetFileName(updatedFileName);
                         }
                         if (!String.IsNullOrEmpty(updatedFileName))
                         {
-                            this.TBActionURIValue.Text = updatedFileName;
-                            this.TBActionURIValue.ToolTip = updatedFileName;
+                            TBActionURIValue.Text = updatedFileName;
+                            TBActionURIValue.ToolTip = updatedFileName;
                         }
                         else
                         {
-                            this.TBActionURIValue.Text = "";
-                            this.TBActionURIValue.ToolTip = "";
+                            TBActionURIValue.Text = "";
+                            TBActionURIValue.ToolTip = "";
                         }
                     }
                 }
@@ -354,7 +353,7 @@ namespace RippleEditor.Controls
             }
             catch (Exception ex)
             {
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in ActionURIBrowseButton_Click for Floor Properties: {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in ActionURIBrowseButton_Click for Floor Properties: {0}", ex.Message);
             }
         }
 
@@ -363,35 +362,35 @@ namespace RippleEditor.Controls
             try
             {
                 //Applicable only for types other than text
-                if (!(this.CBTypeValue.SelectedValue.ToString() == RippleDictionary.TileType.Text.ToString()))
+                if (!(CBTypeValue.SelectedValue.ToString() == TileType.Text.ToString()))
                 {
-                    System.Windows.Forms.OpenFileDialog dlgBox = new System.Windows.Forms.OpenFileDialog();
+                    var dlgBox = new OpenFileDialog();
 
-                    if (this.CBTypeValue.SelectedValue.ToString() == RippleDictionary.TileType.OnlyMedia.ToString())
+                    if (CBTypeValue.SelectedValue.ToString() == TileType.OnlyMedia.ToString())
                         dlgBox.Filter = "Media Files(*.mp4;*.wmv;*.jpeg;*.png;*.jpg;*.bmp;)|*.mp4;*.wmv;*.jpeg;*.png;*.jpg;*.bmp;|Videos(*.mp4;*.wmv;)|*.mp4;*.wmv;|Images(*.jpeg;*.png;*.jpg;*.bmp;)|*.jpeg;*.png;*.jpg;*.bmp;";
                     else
                         dlgBox.Filter = "Images(*.jpeg;*.png;*.jpg;*.bmp;)|*.jpeg;*.png;*.jpg;*.bmp;";
 
                     var res = dlgBox.ShowDialog();
-                    if (res == System.Windows.Forms.DialogResult.OK)
+                    if (res == DialogResult.OK)
                     {
-                        String targetFolder = Utilities.HelperMethods.TargetAssetsDirectory;
-                        String fileExt = System.IO.Path.GetExtension(dlgBox.FileName).ToLower();
+                        var targetFolder = HelperMethods.TargetAssetsDirectory;
+                        var fileExt = Path.GetExtension(dlgBox.FileName).ToLower();
                         if (fileExt.Equals(".mp4") || fileExt.Equals(".wmv"))
                             targetFolder += "\\Videos";
                         else
                             targetFolder += "\\Images";
                         //Get the complete fileName
-                        String updatedFileName = Utilities.HelperMethods.CopyFile(dlgBox.FileName, targetFolder);
+                        var updatedFileName = HelperMethods.CopyFile(dlgBox.FileName, targetFolder);
                         if (!String.IsNullOrEmpty(updatedFileName))
                         {
-                            this.TBContentValue.Text = updatedFileName;
-                            this.TBContentValue.ToolTip = updatedFileName;
+                            TBContentValue.Text = updatedFileName;
+                            TBContentValue.ToolTip = updatedFileName;
                         }
                         else
                         {
-                            this.TBContentValue.Text = "";
-                            this.TBContentValue.ToolTip = "";
+                            TBContentValue.Text = "";
+                            TBContentValue.ToolTip = "";
                         }
                     }
                 }
@@ -403,7 +402,7 @@ namespace RippleEditor.Controls
             catch (Exception ex)
             {
 
-                RippleCommonUtilities.LoggingHelper.LogTrace(1, "Went wrong in ContentBrowseButton_Click for Floor Properties: {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in ContentBrowseButton_Click for Floor Properties: {0}", ex.Message);
             }
         }
 

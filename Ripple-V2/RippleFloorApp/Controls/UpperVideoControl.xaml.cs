@@ -1,17 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using RippleCommonUtilities;
 
 namespace RippleFloorApp.Controls
 {
@@ -25,25 +14,25 @@ namespace RippleFloorApp.Controls
             InitializeComponent();
 
             //Register the names
-            floorInstance.RegisterName(this.UpperTile.Name, this.UpperTile);
-            floorInstance.RegisterName(this.FloorVideoControl.Name, this.FloorVideoControl);
+            floorInstance.RegisterName(UpperTile.Name, UpperTile);
+            floorInstance.RegisterName(FloorVideoControl.Name, FloorVideoControl);
         }
 
         public double ControlWidth
         {
-            set { this.Height = value * RippleCommonUtilities.Globals.CurrentResolution.VerticalResolution; }
+            set { Height = value * Globals.CurrentResolution.VerticalResolution; }
         }
 
         public double ControlHeight
         {
-            set { this.Width = value * RippleCommonUtilities.Globals.CurrentResolution.HorizontalResolution; }
+            set { Width = value * Globals.CurrentResolution.HorizontalResolution; }
         }
 
         public void SetMargin(double left, double top)
         {
-            this.HorizontalAlignment = System.Windows.HorizontalAlignment.Right;
-            this.VerticalAlignment = System.Windows.VerticalAlignment.Top;
-            this.Margin = new Thickness(0, left * RippleCommonUtilities.Globals.CurrentResolution.VerticalResolution, top * RippleCommonUtilities.Globals.CurrentResolution.HorizontalResolution, 0);
+            HorizontalAlignment = HorizontalAlignment.Right;
+            VerticalAlignment = VerticalAlignment.Top;
+            Margin = new Thickness(0, left * Globals.CurrentResolution.VerticalResolution, top * Globals.CurrentResolution.HorizontalResolution, 0);
         }
     }
 }

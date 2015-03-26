@@ -51,7 +51,7 @@ namespace RippleDictionary
 
         public UnlockTypeNotKnownException(string unlockType)
         {
-            this.unlocktype = unlockType;
+            unlocktype = unlockType;
         } 
         #endregion
 

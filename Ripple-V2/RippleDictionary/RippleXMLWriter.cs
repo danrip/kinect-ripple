@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Xml.Linq;
 
 namespace RippleDictionary
@@ -13,12 +14,12 @@ namespace RippleDictionary
         /// <returns>System.bool</returns>
         public static bool TryWriteToXML(Ripple ripple, string filePath)
         {
-            XDocument document = new XDocument();
+            var document = new XDocument();
 
             try
             {
-                XElement eFloor = GetXElementFloor(ripple.Floor);
-                XElement eScreen = GetXElementScreen(ripple.Screen);
+                var eFloor = GetXElementFloor(ripple.Floor);
+                var eScreen = GetXElementScreen(ripple.Screen);
 
                 document.Add(new XComment(string.Format("Ripple XML generated on {0}", DateTime.Now)));
                 document.Add(new XElement(XMLElementsAndAttributes.Ripple, eFloor, eScreen));
@@ -29,7 +30,7 @@ namespace RippleDictionary
             }
             catch (Exception ex)
             {
-                System.Diagnostics.EventLog.WriteEntry("RippleDictionary", "Could not write to the RippleXML file.\n" + ex.Message, System.Diagnostics.EventLogEntryType.Error);
+                EventLog.WriteEntry("RippleDictionary", "Could not write to the RippleXML file.\n" + ex.Message, EventLogEntryType.Error);
                 return false;
             }
         }
@@ -42,18 +43,18 @@ namespace RippleDictionary
         /// <returns>System.Xml.Linq.XElement</returns>
         private static XElement GetXElementFloor(Floor floor)
         {
-            XElement eStart = GetXElementStart(floor.Start);
+            var eStart = GetXElementStart(floor.Start);
 
-            XElement eTransition = new XElement(XMLElementsAndAttributes.Transition,
+            var eTransition = new XElement(XMLElementsAndAttributes.Transition,
                 new XAttribute(XMLElementsAndAttributes.Music, floor.Transition.Music),
                 new XAttribute(XMLElementsAndAttributes.Animation, floor.Transition.Animation)
                 );
 
-            XElement eLockingPeriod = new XElement(XMLElementsAndAttributes.LockingPeriod, floor.LockingPeriod.ToString());
+            var eLockingPeriod = new XElement(XMLElementsAndAttributes.LockingPeriod, floor.LockingPeriod.ToString());
 
-            XElement eSystemAutoLockPeriod = new XElement(XMLElementsAndAttributes.SystemAutoLockPeriod, floor.SystemAutoLockPeriod.ToString());
+            var eSystemAutoLockPeriod = new XElement(XMLElementsAndAttributes.SystemAutoLockPeriod, floor.SystemAutoLockPeriod.ToString());
 
-            XElement eUpperTile = new XElement(XMLElementsAndAttributes.UpperTile,
+            var eUpperTile = new XElement(XMLElementsAndAttributes.UpperTile,
                 new XAttribute(XMLElementsAndAttributes.Id, floor.UpperTile.Id),
                 new XAttribute(XMLElementsAndAttributes.Name, floor.UpperTile.Name),
                 new XAttribute(XMLElementsAndAttributes.TileType, floor.UpperTile.TileType),
@@ -66,7 +67,7 @@ namespace RippleDictionary
                 new XAttribute(XMLElementsAndAttributes.ActionURI, floor.UpperTile.ActionURI)
                 );
 
-            XElement eTiles = new XElement(XMLElementsAndAttributes.Tiles, GetXElementTiles(floor.Tiles));
+            var eTiles = new XElement(XMLElementsAndAttributes.Tiles, GetXElementTiles(floor.Tiles));
 
             return new XElement(XMLElementsAndAttributes.Floor, new XElement(XMLElementsAndAttributes.SetupID, floor.SetupID), eStart, eTransition, eLockingPeriod, eSystemAutoLockPeriod, eUpperTile, eTiles);
         }
@@ -78,18 +79,18 @@ namespace RippleDictionary
         /// <returns></returns>
         private static XElement GetXElementStart(Start start)
         {
-            XElement eAnimation = new XElement(XMLElementsAndAttributes.Animation,
+            var eAnimation = new XElement(XMLElementsAndAttributes.Animation,
                 new XAttribute(XMLElementsAndAttributes.Name, start.Animation.Name),
                 new XAttribute(XMLElementsAndAttributes.Content, start.Animation.Content),
                 new XAttribute(XMLElementsAndAttributes.AnimationType, start.Animation.AnimType.ToString())
                 );
 
-            XElement eUnlock = new XElement(XMLElementsAndAttributes.Unlock,
+            var eUnlock = new XElement(XMLElementsAndAttributes.Unlock,
                 new XAttribute(XMLElementsAndAttributes.Mode, start.Unlock.Mode),
                 new XAttribute(XMLElementsAndAttributes.UnlockType, start.Unlock.UnlockType)
                 );
 
-            XElement eIntroVideoWaitPeriod = new XElement(XMLElementsAndAttributes.IntroVideoWaitPeriod,
+            var eIntroVideoWaitPeriod = new XElement(XMLElementsAndAttributes.IntroVideoWaitPeriod,
                 new XAttribute(XMLElementsAndAttributes.Value, start.IntroVideoWaitPeriod.ToString())
                 );
 
@@ -103,7 +104,7 @@ namespace RippleDictionary
         /// <returns></returns>
         private static List<XElement> GetXElementTiles(Dictionary<string, Tile> tiles)
         {
-            List<XElement> eTiles = new List<XElement>();
+            var eTiles = new List<XElement>();
             XElement eTile = null;
 
             foreach (var tile in tiles)
@@ -124,7 +125,7 @@ namespace RippleDictionary
         private static XElement GetXElementTile(Tile tile)
         {
             XAttribute eId, eName, eTileType, eColor, eStyle, eCoordinate, eAction, eActionURI, eContent, eCorrespondingScreenContentType;
-            List<XElement> eSubTiles = new List<XElement>();
+            var eSubTiles = new List<XElement>();
             string id = null, appendSub = null;
 
             id = tile.Id;
@@ -155,7 +156,7 @@ namespace RippleDictionary
                 eSubTiles = null;
             }
 
-            for (int i = 0; i < ((id.Length - id.Replace(XMLElementsAndAttributes.Sub, "").Length) / XMLElementsAndAttributes.Sub.Length); i++)
+            for (var i = 0; i < ((id.Length - id.Replace(XMLElementsAndAttributes.Sub, "").Length) / XMLElementsAndAttributes.Sub.Length); i++)
             {
                 appendSub += XMLElementsAndAttributes.Sub;
             }
@@ -170,7 +171,7 @@ namespace RippleDictionary
         /// <returns>RippleDictionary.Screen</returns>
         private static XElement GetXElementScreen(Screen screen)
         {
-            List<XElement> eScreenContents = new List<XElement>();
+            var eScreenContents = new List<XElement>();
             XElement eScreenContent = null;
             XAttribute eType, eId, eHeader, eContent, eLoopVideo;
 
@@ -203,7 +204,7 @@ namespace RippleDictionary
         /// <returns></returns>
         private static string GenerateStringValue(object obj)
         {
-            string value = "";
+            var value = "";
             foreach (var property in obj.GetType().GetProperties())
             {
                 value += property.Name + ":'" + property.GetValue(obj, null).ToString() + "'; ";

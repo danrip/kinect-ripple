@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Kinect;
 using System.ComponentModel;
-using System.Windows;
-using System.Windows.Input;
 using System.Timers;
 using RippleCalibration.Utilities.Gestures;
 using RippleCalibration.Utilities.Gestures.Segments;
@@ -54,7 +48,7 @@ namespace RippleCalibration.Utilities
 
                 _gesture = value;
 
-                if (this.PropertyChanged != null)
+                if (PropertyChanged != null)
                     PropertyChanged(this, new PropertyChangedEventArgs("Gesture"));
             }
         }
@@ -109,13 +103,13 @@ namespace RippleCalibration.Utilities
         {
             // define the gestures for the demo
 
-            IRelativeGestureSegment[] swiperightSegments = new IRelativeGestureSegment[3];
+            var swiperightSegments = new IRelativeGestureSegment[3];
             swiperightSegments[0] = new SwipeRightSegment1();
             swiperightSegments[1] = new SwipeRightSegment2();
             swiperightSegments[2] = new SwipeRightSegment3();
             gestureController.AddGesture("SwipeRight", swiperightSegments);
 
-            IRelativeGestureSegment[] swipeleftSegments = new IRelativeGestureSegment[3];
+            var swipeleftSegments = new IRelativeGestureSegment[3];
             swipeleftSegments[0] = new SwipeLeftSegment1();
             swipeleftSegments[1] = new SwipeLeftSegment2();
             swipeleftSegments[2] = new SwipeLeftSegment3();
@@ -166,7 +160,7 @@ namespace RippleCalibration.Utilities
         {
             if (Globals.appState == AppState.firstCoordinate)
             {
-                bool valuesCheck = ValuesCheck();
+                var valuesCheck = ValuesCheck();
                 if (valuesCheck)
                 {
                     Globals.X3 = averageLength;
@@ -176,7 +170,7 @@ namespace RippleCalibration.Utilities
             }
             else if (Globals.appState == AppState.secondCoordinate)
             {
-                bool valuesCheck = ValuesCheck();
+                var valuesCheck = ValuesCheck();
                 if (valuesCheck)
                 {
                     Globals.X4 = averageLength;
@@ -186,7 +180,7 @@ namespace RippleCalibration.Utilities
             }
             else if (Globals.appState == AppState.thirdCoordinate)
             {
-                bool valuesCheck = ValuesCheck();
+                var valuesCheck = ValuesCheck();
                 if (valuesCheck)
                 {
                     Globals.X2 = averageLength;
@@ -196,7 +190,7 @@ namespace RippleCalibration.Utilities
             }
             else if (Globals.appState == AppState.fourthCoordinate)
             {
-                bool valuesCheck = ValuesCheck();
+                var valuesCheck = ValuesCheck();
                 if (valuesCheck)
                 {
                     Globals.X1 = averageLength;
@@ -223,8 +217,8 @@ namespace RippleCalibration.Utilities
                 //if (KinectSensor.KinectSensors.Count > 0)
                 //{
 
-                this.sensor = KinectSensor.GetDefault();
-                if (this.sensor != null)
+                sensor = KinectSensor.GetDefault();
+                if (sensor != null)
                 {
                     Initialize();
                 }
@@ -247,19 +241,19 @@ namespace RippleCalibration.Utilities
 
         void Initialize()
         {
-            if (this.sensor != null)
+            if (sensor != null)
             {
                 // open the sensor
-                this.sensor.Open();
+                sensor.Open();
 
                 //bodies = new Body[sensor.BodyFrameSource.BodyCount];
 
                 // open the reader for the body frames
                 reader = sensor.BodyFrameSource.OpenReader();
 
-                if (this.reader != null)
+                if (reader != null)
                 {
-                    this.reader.FrameArrived += this.sensor_SkeletonFrameReady;
+                    reader.FrameArrived += sensor_SkeletonFrameReady;
                 }
 
 
@@ -280,15 +274,15 @@ namespace RippleCalibration.Utilities
 
         void Unitialize()
         {
-            if (this.reader != null)
+            if (reader != null)
             {
                 // BodyFrameReder is IDisposable
-                this.reader.Dispose();
-                this.reader = null;
+                reader.Dispose();
+                reader = null;
             }
 
             // Body is IDisposable
-            if (this.bodies != null)
+            if (bodies != null)
             {
                 bodies = null;
                 //foreach (Body body in this.bodies)
@@ -300,10 +294,10 @@ namespace RippleCalibration.Utilities
                 //}
             }
 
-            if (this.sensor != null)
+            if (sensor != null)
             {
-                this.sensor.Close();
-                this.sensor = null;
+                sensor.Close();
+                sensor = null;
             }
 
             if (gestureController != null)
@@ -316,13 +310,13 @@ namespace RippleCalibration.Utilities
 
         void sensor_SkeletonFrameReady(object sender, BodyFrameArrivedEventArgs e)
         {
-            Joint Spine = new Joint();
-            Joint LeftFeet = new Joint();
-            Joint RightFeet = new Joint();
+            var Spine = new Joint();
+            var LeftFeet = new Joint();
+            var RightFeet = new Joint();
 
-            BodyFrameReference frameReference = e.FrameReference;
+            var frameReference = e.FrameReference;
 
-            BodyFrame frame = frameReference.AcquireFrame();
+            var frame = frameReference.AcquireFrame();
 
 
             if (frame != null)
@@ -330,14 +324,14 @@ namespace RippleCalibration.Utilities
                 // BodyFrame is IDisposable
                 using (frame)
                 {
-                    if (this.bodies == null)
+                    if (bodies == null)
                     {
-                        this.bodies = new Body[frame.BodyCount];
+                        bodies = new Body[frame.BodyCount];
                     }
 
-                    frame.GetAndRefreshBodyData(this.bodies);
+                    frame.GetAndRefreshBodyData(bodies);
 
-                    Body skeleton = GetPrimarySkeleton(this.bodies);
+                    var skeleton = GetPrimarySkeleton(bodies);
 
                     if (skeleton != null)
                     {
@@ -382,7 +376,7 @@ namespace RippleCalibration.Utilities
             if (skeletons != null)
             {
                 // Find the closest skeleton
-                for (int i = 0; i < skeletons.Length; i++)
+                for (var i = 0; i < skeletons.Length; i++)
                 {
                     if (skeletons[i].IsTracked)
                     {
@@ -392,8 +386,8 @@ namespace RippleCalibration.Utilities
                         }
                         else
                         {
-                            IReadOnlyDictionary<JointType, Joint> joints = skeletons[i].Joints;
-                            IReadOnlyDictionary<JointType, Joint> jointsOld = skeleton.Joints;
+                            var joints = skeletons[i].Joints;
+                            var jointsOld = skeleton.Joints;
                             if (jointsOld[JointType.SpineMid].Position.Z > joints[JointType.SpineMid].Position.Z)
                                 skeleton = skeletons[i];
                         }

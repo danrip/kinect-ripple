@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Media;
 
 namespace RippleCalibration
@@ -17,7 +11,7 @@ namespace RippleCalibration
         private void Application_Startup(object sender, StartupEventArgs e)
         {
             // Create main application window
-            MainWindow floorWin = new MainWindow();
+            var floorWin = new MainWindow();
             floorWin.Top = 0.0;
             floorWin.Left = 0.0;
             floorWin.Topmost = true;
