@@ -70,8 +70,8 @@ namespace RippleFloorApp
                 //Start receiving messages
                 MessageSender.StartReceivingMessages(this);
 
-                //var kinectHelper = new KinectHelper();
-                //kinectHelper.PropertyChanged += kinectHelper_PropertyChanged;
+                var kinectHelper = new KinectHelper();
+                kinectHelper.PropertyChanged += kinectHelper_PropertyChanged;
 
                 //Initialize background wait thread to auto lock the system
                 _autoLockPeriodInSeconds = FloorData.SystemAutoLockPeriod;
