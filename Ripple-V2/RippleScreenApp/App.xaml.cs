@@ -20,21 +20,20 @@ namespace RippleScreenApp
             double VRes = 800;
             for (var i = 0; i != e.Args.Length; ++i)
             {
-                if (e.Args[i] == "/Top")
+                switch (e.Args[i].ToLower())
                 {
-                    top = Convert.ToDouble(e.Args[++i]);
-                }
-                else if (e.Args[i] == "/Left")
-                {
-                    left = Convert.ToDouble(e.Args[++i]);
-                }
-                else if (e.Args[i] == "/VRes")
-                {
-                    VRes = Convert.ToDouble(e.Args[++i]);
-                }
-                else if (e.Args[i] == "/HRes")
-                {
-                    HRes = Convert.ToDouble(e.Args[++i]);
+                    case "/top":
+                        top = Convert.ToDouble(e.Args[++i]);
+                        break;
+                    case "/left":
+                        left = Convert.ToDouble(e.Args[++i]);
+                        break;
+                    case "/vres":
+                        VRes = Convert.ToDouble(e.Args[++i]);
+                        break;
+                    case "/hres":
+                        HRes = Convert.ToDouble(e.Args[++i]);
+                        break;
                 }
             }
 
@@ -45,16 +44,18 @@ namespace RippleScreenApp
             Globals.CurrentResolution.YOrigin = top;
 
             // Create main application window
-            var screenWin = new ScreenWindow();
-            screenWin.WindowStartupLocation = WindowStartupLocation.Manual;
-            screenWin.Top = top;
-            screenWin.Left = left;
-            screenWin.BorderThickness = new Thickness(0.2);
-            screenWin.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0072C6"));
-            screenWin.WindowStyle = WindowStyle.None;
-            screenWin.Height = VRes;
-            screenWin.Width = HRes;
-            screenWin.ResizeMode = ResizeMode.NoResize;
+            var screenWin = new ScreenWindow
+            {
+                WindowStartupLocation = WindowStartupLocation.Manual,
+                Top = top,
+                Left = left,
+                BorderThickness = new Thickness(0.2),
+                BorderBrush = new SolidColorBrush((Color) ColorConverter.ConvertFromString("#0072C6")),
+                WindowStyle = WindowStyle.None,
+                Height = VRes,
+                Width = HRes,
+                ResizeMode = ResizeMode.NoResize
+            };
             screenWin.Show();
         }
 

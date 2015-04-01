@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+VisualStudioVersion = 12.0.30110.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RippleFloorApp", "RippleFloorApp\RippleFloorApp.csproj", "{7FC3AF47-3F38-4808-A572-0A71CCFB3648}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -19,21 +19,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RippleCommonUtilities", "Ri
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RippleDictionary", "RippleDictionary\RippleDictionary.csproj", "{679934D5-AEA7-4947-9428-2CFC9F97B1E9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ripple", "Ripple\Ripple.csproj", "{2744AA60-D44D-4FD4-927B-66B93B69213C}"
-	ProjectSection(ProjectDependencies) = postProject
-		{3D97FBC2-D48D-4D8D-A89D-EDE969F0A219} = {3D97FBC2-D48D-4D8D-A89D-EDE969F0A219}
-		{679934D5-AEA7-4947-9428-2CFC9F97B1E9} = {679934D5-AEA7-4947-9428-2CFC9F97B1E9}
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RippleEditor", "RippleEditor\RippleEditor.csproj", "{F12E4660-7532-4F5A-AB70-6AAAED68BF50}"
 	ProjectSection(ProjectDependencies) = postProject
 		{3D97FBC2-D48D-4D8D-A89D-EDE969F0A219} = {3D97FBC2-D48D-4D8D-A89D-EDE969F0A219}
 		{679934D5-AEA7-4947-9428-2CFC9F97B1E9} = {679934D5-AEA7-4947-9428-2CFC9F97B1E9}
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{3125C9FF-0343-4CB3-9D68-BAB64F5A7AE8}"
-	ProjectSection(SolutionItems) = preProject
-		SolutionItems\Readme.html = SolutionItems\Readme.html
 	EndProjectSection
 EndProject
 Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "RippleSetup", "RippleSetup\RippleSetup.wixproj", "{BC0EC1FD-795A-499E-A15F-B13F12719AC6}"
@@ -56,42 +45,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RippleCalibration", "RippleCalibration\RippleCalibration.csproj", "{B5D2469D-E388-4EB1-A386-571F85A90A67}"
 EndProject
 Global
-	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 11
-		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = https://rippleonline.visualstudio.com/defaultcollection
-		SccLocalPath0 = .
-		SccProjectUniqueName1 = RippleCommonUtilities\\RippleCommonUtilities.csproj
-		SccProjectName1 = RippleCommonUtilities
-		SccLocalPath1 = RippleCommonUtilities
-		SccProjectUniqueName2 = RippleDictionary\\RippleDictionary.csproj
-		SccProjectName2 = RippleDictionary
-		SccLocalPath2 = RippleDictionary
-		SccProjectUniqueName3 = RippleFloorApp\\RippleFloorApp.csproj
-		SccProjectName3 = RippleFloorApp
-		SccLocalPath3 = RippleFloorApp
-		SccProjectUniqueName4 = RippleScreenApp\\RippleScreenApp.csproj
-		SccProjectName4 = RippleScreenApp
-		SccLocalPath4 = RippleScreenApp
-		SccProjectUniqueName5 = Ripple\\Ripple.csproj
-		SccProjectName5 = Ripple
-		SccLocalPath5 = Ripple
-		SccProjectUniqueName6 = RippleEditor\\RippleEditor.csproj
-		SccProjectName6 = RippleEditor
-		SccLocalPath6 = RippleEditor
-		SccProjectUniqueName7 = RippleSetup\\RippleSetup.wixproj
-		SccProjectName7 = RippleSetup
-		SccLocalPath7 = RippleSetup
-		SccProjectUniqueName8 = MicrosoftIT.ManagedLogging\\MicrosoftIT.ManagedLogging.csproj
-		SccProjectName8 = MicrosoftIT.ManagedLogging
-		SccLocalPath8 = MicrosoftIT.ManagedLogging
-		SccProjectUniqueName9 = RippleLocalService\\RippleLocalService.csproj
-		SccProjectName9 = RippleLocalService
-		SccLocalPath9 = RippleLocalService
-		SccProjectUniqueName10 = RippleCalibration\\RippleCalibration.csproj
-		SccProjectName10 = RippleCalibration
-		SccLocalPath10 = RippleCalibration
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -141,16 +94,6 @@ Global
 		{679934D5-AEA7-4947-9428-2CFC9F97B1E9}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{679934D5-AEA7-4947-9428-2CFC9F97B1E9}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{679934D5-AEA7-4947-9428-2CFC9F97B1E9}.Release|x86.ActiveCfg = Release|Any CPU
-		{2744AA60-D44D-4FD4-927B-66B93B69213C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2744AA60-D44D-4FD4-927B-66B93B69213C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2744AA60-D44D-4FD4-927B-66B93B69213C}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{2744AA60-D44D-4FD4-927B-66B93B69213C}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{2744AA60-D44D-4FD4-927B-66B93B69213C}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{2744AA60-D44D-4FD4-927B-66B93B69213C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2744AA60-D44D-4FD4-927B-66B93B69213C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2744AA60-D44D-4FD4-927B-66B93B69213C}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{2744AA60-D44D-4FD4-927B-66B93B69213C}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{2744AA60-D44D-4FD4-927B-66B93B69213C}.Release|x86.ActiveCfg = Release|Any CPU
 		{F12E4660-7532-4F5A-AB70-6AAAED68BF50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F12E4660-7532-4F5A-AB70-6AAAED68BF50}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F12E4660-7532-4F5A-AB70-6AAAED68BF50}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU

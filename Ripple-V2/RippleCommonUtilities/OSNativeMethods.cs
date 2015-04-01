@@ -38,9 +38,9 @@ namespace RippleCommonUtilities
         public const int MouseEventRightDown = 0x08;
         public const int MouseEventRightUp = 0x10;
         public const int MouseEventAbsolute = 0x8000;
-        public const int WHEEL = 0x00000800;
+        public const int Wheel = 0x00000800;
 
-        private static bool lastLeftDown;
+        private static bool _lastLeftDown;
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern uint SendInput(uint numInputs, Input[] inputs, int size);
@@ -50,13 +50,13 @@ namespace RippleCommonUtilities
 
         public static void UpScrolling()
         {
-            mouse_event((int)(WHEEL), 0, 0, 600, 0);
+            mouse_event((int)(Wheel), 0, 0, 600, 0);
         }
 
         public static void DownScrolling()
         {
-            var x = -600;
-            mouse_event((int)(WHEEL), 0, 0, x, 0);
+            const int x = -600;
+            mouse_event(Wheel, 0, 0, x, 0);
         }
 
         public static void SendMouseInput(int positionX, int positionY, int maxX, int maxY, bool leftDown)
@@ -76,20 +76,20 @@ namespace RippleCommonUtilities
             i[0].MouseInput.Flags = MouseEventAbsolute | MouseEventMove;
 
             // determine if we need to send a mouse down or mouse up event
-            if (!lastLeftDown && leftDown)
+            if (!_lastLeftDown && leftDown)
             {
                 i[1] = new Input();
                 i[1].Type = InputMouse;
                 i[1].MouseInput.Flags = MouseEventLeftDown;
             }
-            else if (lastLeftDown && !leftDown)
+            else if (_lastLeftDown && !leftDown)
             {
                 i[1] = new Input();
                 i[1].Type = InputMouse;
                 i[1].MouseInput.Flags = MouseEventLeftUp;
             }
 
-            lastLeftDown = leftDown;
+            _lastLeftDown = leftDown;
 
             // send it off
             var result = SendInput(2, i, Marshal.SizeOf(i[0]));

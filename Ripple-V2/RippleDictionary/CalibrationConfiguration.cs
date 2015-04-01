@@ -4,94 +4,26 @@ namespace RippleDictionary
 {
     public class CalibrationConfiguration
     {
-        #region Fields
-        private double frontDistance, backDistance, leftDistance, rightDistance, primaryScreenWidth, primaryScreenHeight;
-        #endregion
-
-        #region Constructors
-        public CalibrationConfiguration(string t_frontDistance, string t_backDistance, string t_leftDistance, string t_rightDistance, string t_primaryScreenWidth, string t_primaryScreenHeight)
+        public CalibrationConfiguration(string tFrontDistance, string tBackDistance, string tLeftDistance, string tRightDistance, string tPrimaryScreenWidth, string tPrimaryScreenHeight)
         {
-            FrontDistance = Convert.ToDouble(t_frontDistance);
-            BackDistance = Convert.ToDouble(t_backDistance);
-            LeftDistance = Convert.ToDouble(t_leftDistance);
-            RightDistance = Convert.ToDouble(t_rightDistance);
-            PrimaryScreenWidth = Convert.ToDouble(t_primaryScreenWidth);
-            PrimaryScreenHeight = Convert.ToDouble(t_primaryScreenHeight);
-        }
-        #endregion
-
-        #region Properties
-        public double FrontDistance
-        {
-            get
-            {
-                return frontDistance;
-            }
-            set
-            {
-                frontDistance = value;
-            }
+            FrontDistance = Convert.ToDouble(tFrontDistance);
+            BackDistance = Convert.ToDouble(tBackDistance);
+            LeftDistance = Convert.ToDouble(tLeftDistance);
+            RightDistance = Convert.ToDouble(tRightDistance);
+            PrimaryScreenWidth = Convert.ToDouble(tPrimaryScreenWidth);
+            PrimaryScreenHeight = Convert.ToDouble(tPrimaryScreenHeight);
         }
 
-        public double BackDistance
-        {
-            get
-            {
-                return backDistance;
-            }
-            set
-            {
-                backDistance = value;
-            }
-        }
+        public double FrontDistance { get; set; }
 
-        public double LeftDistance
-        {
-            get
-            {
-                return leftDistance;
-            }
-            set
-            {
-                leftDistance = value;
-            }
-        }
+        public double BackDistance { get; set; }
 
-        public double RightDistance
-        {
-            get
-            {
-                return rightDistance;
-            }
-            set
-            {
-                rightDistance = value;
-            }
-        }
+        public double LeftDistance { get; set; }
 
-        public double PrimaryScreenWidth
-        {
-            get
-            {
-                return primaryScreenWidth;
-            }
-            set
-            {
-                primaryScreenWidth = value;
-            }
-        }
+        public double RightDistance { get; set; }
 
-        public double PrimaryScreenHeight
-        {
-            get
-            {
-                return primaryScreenHeight;
-            }
-            set
-            {
-                primaryScreenHeight = value;
-            }
-        }
-        #endregion
+        public double PrimaryScreenWidth { get; set; }
+
+        public double PrimaryScreenHeight { get; set; }
     }
 }

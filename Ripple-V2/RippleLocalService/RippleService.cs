@@ -14,9 +14,10 @@ namespace RippleLocalService
 {
     public partial class RippleService : ServiceBase
     {
-        private Timer iRippleWindowsServiceTimer = null;
-        private Timer iRippleWindowsServiceTimer2 = null;
-        private static List<String> fileListToBeDeleted = new List<string>();
+        private Timer _iRippleWindowsServiceTimer;
+        private Timer _iRippleWindowsServiceTimer2;
+        
+        private static readonly List<String> fileListToBeDeleted = new List<string>();
 
         private static String TelemetryFilePath
         {
@@ -29,23 +30,24 @@ namespace RippleLocalService
         }
 
         //Update period for Telemetry and emailing log files
-        private static int UpdateIntervalInMinutesForTelemetry = Convert.ToInt16(ConfigurationManager.AppSettings["UpdateIntervalInMinutesForTelemetry"]);
+        private static readonly int UpdateIntervalInMinutesForTelemetry = Convert.ToInt16(ConfigurationManager.AppSettings["UpdateIntervalInMinutesForTelemetry"]);
+        
         //Update period for Quiz Update
-        private static int UpdateIntervalInMinutesForQuiz = Convert.ToInt16(ConfigurationManager.AppSettings["UpdateIntervalInMinutesForQuiz"]);
+        private static readonly int UpdateIntervalInMinutesForQuiz = Convert.ToInt16(ConfigurationManager.AppSettings["UpdateIntervalInMinutesForQuiz"]);
  
 
         //Telemetry and Feedback variables
-        private static String TargetTableName = ConfigurationManager.AppSettings["TelemetryTargetTableName"];
-        private static String FeedbackTargetTableName = ConfigurationManager.AppSettings["FeedbackTargetTableName"];
-        private static String TargetDatabaseName = ConfigurationManager.AppSettings["TargetDatabaseName"];
-        private static String TargetServerName = ConfigurationManager.AppSettings["TargetServerName"];
-
-        //Email Variables
-        private static String SMTPServerName = ConfigurationManager.AppSettings["SMTPServer"];
-        private static String EmailTo = ConfigurationManager.AppSettings["EmailTo"];
-        private static String EmailFrom = ConfigurationManager.AppSettings["EmailFrom"];
-        private static String EmailSubject = ConfigurationManager.AppSettings["EmailSubject"];
-        private static String EmailBody = ConfigurationManager.AppSettings["EmailBody"];
+        private static readonly string TargetTableName = ConfigurationManager.AppSettings["TelemetryTargetTableName"];
+        private static readonly string FeedbackTargetTableName = ConfigurationManager.AppSettings["FeedbackTargetTableName"];
+        private static readonly string TargetDatabaseName = ConfigurationManager.AppSettings["TargetDatabaseName"];
+        private static readonly string TargetServerName = ConfigurationManager.AppSettings["TargetServerName"];
+                                
+        //Email Variables       
+        private static readonly string SmtpServerName = ConfigurationManager.AppSettings["SMTPServer"];
+        private static readonly string EmailTo = ConfigurationManager.AppSettings["EmailTo"];
+        private static readonly string EmailFrom = ConfigurationManager.AppSettings["EmailFrom"];
+        private static readonly string EmailSubject = ConfigurationManager.AppSettings["EmailSubject"];
+        private static readonly string EmailBody = ConfigurationManager.AppSettings["EmailBody"];
 
 
         public RippleService()
@@ -58,14 +60,14 @@ namespace RippleLocalService
         protected override void OnStart(string[] args)
         {
             //Initialize Timer to work for Telemetry and logs
-            iRippleWindowsServiceTimer = new Timer(UpdateIntervalInMinutesForTelemetry * 60 * 1000);
-            iRippleWindowsServiceTimer.Elapsed += new ElapsedEventHandler(RippleWindowsServiceTimer_Tick);
-            iRippleWindowsServiceTimer.Enabled = true;
+            _iRippleWindowsServiceTimer = new Timer(UpdateIntervalInMinutesForTelemetry * 60 * 1000);
+            _iRippleWindowsServiceTimer.Elapsed += new ElapsedEventHandler(RippleWindowsServiceTimer_Tick);
+            _iRippleWindowsServiceTimer.Enabled = true;
 
             //Initialize Timer to work for Quiz Data Update
-            iRippleWindowsServiceTimer2 = new Timer(UpdateIntervalInMinutesForQuiz * 60 * 1000);
-            iRippleWindowsServiceTimer2.Elapsed += new ElapsedEventHandler(RippleWindowsServiceTimer2_Tick);
-            iRippleWindowsServiceTimer2.Enabled = true;
+            _iRippleWindowsServiceTimer2 = new Timer(UpdateIntervalInMinutesForQuiz * 60 * 1000);
+            _iRippleWindowsServiceTimer2.Elapsed += new ElapsedEventHandler(RippleWindowsServiceTimer2_Tick);
+            _iRippleWindowsServiceTimer2.Enabled = true;
 
             //Initialize event logging
             LogManager.StartLogging("RippleLocalService");
@@ -83,7 +85,7 @@ namespace RippleLocalService
         {
             try
             {
-                iRippleWindowsServiceTimer.Enabled = false;
+                _iRippleWindowsServiceTimer.Enabled = false;
                 //iRippleWindowsServiceTimer2.Enabled = false;
 
                 //Log tick event
@@ -96,13 +98,13 @@ namespace RippleLocalService
                 EmailETLFiles();
                 DeleteETLFiles();
 
-                iRippleWindowsServiceTimer.Enabled = true;
+                _iRippleWindowsServiceTimer.Enabled = true;
                 //iRippleWindowsServiceTimer2.Enabled = true;
             }
             catch (Exception ex)
             {
                 LogManager.LogTrace(1, "Went wrong in Ripple Service Tick Event for Telemetry {0}", ex.Message);
-                iRippleWindowsServiceTimer.Enabled = true;
+                _iRippleWindowsServiceTimer.Enabled = true;
                 //iRippleWindowsServiceTimer2.Enabled = true;
             }
         }
@@ -111,8 +113,7 @@ namespace RippleLocalService
         {
             try
             {
-                //iRippleWindowsServiceTimer.Enabled = false;
-                iRippleWindowsServiceTimer2.Enabled = false;
+                _iRippleWindowsServiceTimer2.Enabled = false;
 
                 //Log tick event
                 LogManager.LogTrace(1, "Tick Event for Quiz in Service {0}", DateTime.Now);
@@ -121,14 +122,13 @@ namespace RippleLocalService
                 //Quiz answers
                 UpdateQuizAnswers();
 
-                //iRippleWindowsServiceTimer.Enabled = true;
-                iRippleWindowsServiceTimer2.Enabled = true;
+                
+                _iRippleWindowsServiceTimer2.Enabled = true;
             }
             catch (Exception ex)
             {
                 LogManager.LogTrace(1, "Went wrong in Ripple Service Tick Event for Quiz {0}", ex.Message);
-                //iRippleWindowsServiceTimer.Enabled = true;
-                iRippleWindowsServiceTimer2.Enabled = true;
+               _iRippleWindowsServiceTimer2.Enabled = true;
             }
         }
 
@@ -162,7 +162,7 @@ namespace RippleLocalService
         {
             try
             {
-                var message = new EmailSender(SMTPServerName, EmailTo, EmailFrom, EmailSubject);
+                var message = new EmailSender(SmtpServerName, EmailTo, EmailFrom, EmailSubject);
                 var fileList = Directory.EnumerateFiles(Path.Combine(Path.GetTempPath(), "Ripple"), "*.etl", SearchOption.TopDirectoryOnly);
                 foreach (var t in fileList)
                 {
