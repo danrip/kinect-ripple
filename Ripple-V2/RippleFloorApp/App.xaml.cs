@@ -65,7 +65,7 @@ namespace RippleFloorApp
                 Topmost = true,
                 BorderThickness = new Thickness(0.2),
                 BorderBrush = new SolidColorBrush((Color) ColorConverter.ConvertFromString("#0072C6")),
-                WindowStartupLocation = WindowStartupLocation.Manual,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Width = hRes,
                 Height = vRes,
                 WindowState = WindowState.Maximized,

@@ -74,14 +74,14 @@ namespace RippleScreenApp.Utilities
                         mExternalWPF.browserElement.Document.InvokeScript("executeCommandFromFloor", new Object[] { ScreenWindow.sessionGuid });
                         commandExecuted = true;
                         break;
-                    case "PrintDiscount":
-                        //Get the values
-                        if(!String.IsNullOrEmpty(commandParameters))
-                        {
-                            var valArray = commandParameters.Split(',');
-                            PrinterHelper.PrintDiscountCoupon(valArray[0], valArray[1], valArray[2]);
-                        }
-                        break;
+                    //case "PrintDiscount":
+                    //    //Get the values
+                    //    if(!String.IsNullOrEmpty(commandParameters))
+                    //    {
+                    //        var valArray = commandParameters.Split(',');
+                    //        PrinterHelper.PrintDiscountCoupon(valArray[0], valArray[1], valArray[2]);
+                    //    }
+                    //    break;
                     default:
                         break;
                 }

@@ -195,9 +195,9 @@ namespace RippleLocalService
             {
                 if (File.Exists(TelemetryFilePath))
                 {
-                    reader = new XmlSerializer(typeof(DataSet));
+                    reader = new XmlSerializer(typeof (DataSet));
                     telemetryFile = new StreamReader(TelemetryFilePath);
-                    telemetryData = (DataSet)reader.Deserialize(telemetryFile);
+                    telemetryData = (DataSet) reader.Deserialize(telemetryFile);
                     telemetryFile.Close();
                     telemetryFile.Dispose();
 
@@ -216,7 +216,6 @@ namespace RippleLocalService
 
                         //Successfull, hence delete the file
                         File.Delete(TelemetryFilePath);
-                        return;
                     }
                 }
             }
@@ -228,7 +227,7 @@ namespace RippleLocalService
                     telemetryFile.Close();
                     telemetryFile.Dispose();
                 }
-                LogManager.LogTrace(1,"Went wrong in uploading the telemetry data to teh database {0}", ex.Message);
+                LogManager.LogTrace(1, "Went wrong in uploading the telemetry data to teh database {0}", ex.Message);
             }
         }
 
@@ -278,13 +277,15 @@ namespace RippleLocalService
             }
         }
 
-        private String GetConnectionString()
+        private static string GetConnectionString()
         {
-            var builder = new SqlConnectionStringBuilder();
-            builder.InitialCatalog = TargetDatabaseName;
-            builder.DataSource = TargetServerName;
-            builder.IntegratedSecurity = true;
-            builder.ConnectTimeout = 12;
+            var builder = new SqlConnectionStringBuilder
+            {
+                InitialCatalog = TargetDatabaseName,
+                DataSource = TargetServerName,
+                IntegratedSecurity = true,
+                ConnectTimeout = 12
+            };
 
             return builder.ConnectionString;
         }

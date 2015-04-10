@@ -625,6 +625,7 @@ namespace RippleFloorApp
                     //Reset the time stamp and do nothing
                     Globals.currentBoxTimeStamp = DateTime.Now;
                     StopAllAnimations();
+                    
                     return;
                 }
                 Globals.PreviouslySelectedBox = Globals.CurrentlySelectedBox;

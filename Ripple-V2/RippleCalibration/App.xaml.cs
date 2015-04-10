@@ -11,18 +11,33 @@ namespace RippleCalibration
         private void Application_Startup(object sender, StartupEventArgs e)
         {
             // Create main application window
-            var floorWin = new MainWindow();
-            floorWin.Top = 0.0;
-            floorWin.Left = 0.0;
-            floorWin.Topmost = true;
-            floorWin.BorderThickness = new Thickness(0.2);
-            floorWin.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0072C6"));
-            floorWin.WindowStartupLocation = WindowStartupLocation.Manual;
-            floorWin.Width = SystemParameters.PrimaryScreenWidth;
-            floorWin.Height = SystemParameters.PrimaryScreenHeight;
-            floorWin.WindowState = WindowState.Maximized;
-            floorWin.WindowStyle = WindowStyle.None;
-            floorWin.ResizeMode = ResizeMode.NoResize;
+            var floorWin = new MainWindow
+            {
+                Top = 0.0,
+                Left = 0.0,
+                Topmost = true,
+                BorderThickness = new Thickness(0.2),
+                BorderBrush = new SolidColorBrush((Color) ColorConverter.ConvertFromString("#0072C6")),
+                WindowStartupLocation = WindowStartupLocation.Manual,
+                Width = SystemParameters.PrimaryScreenWidth,
+                Height = SystemParameters.PrimaryScreenHeight,
+                WindowState = WindowState.Maximized,
+                WindowStyle = WindowStyle.None,
+                ResizeMode = ResizeMode.NoResize
+            };
+
+
+#if DEBUG // we need a little bit more control when debugging
+            floorWin.Width = 800;
+            floorWin.Height = 600;
+
+            floorWin.WindowState = WindowState.Normal;
+            floorWin.WindowStyle = WindowStyle.SingleBorderWindow;
+            floorWin.ResizeMode = ResizeMode.CanResize;
+#endif
+
+            
+            
             floorWin.Show();
         }
     }

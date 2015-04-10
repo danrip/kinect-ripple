@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using System.Globalization;
 
 namespace RippleDictionary
 {
@@ -65,12 +66,17 @@ namespace RippleDictionary
         ///     System.IO.FileNotFoundException
         ///     System.OverflowException
         ///     FloorCalibration.UnparseableXMLException" />
-        public static CalibrationConfiguration GetFloorConfigurations(String filePath)
+        public static CalibrationConfiguration GetFloorConfigurations(string calibrationRootFolder)
         {
-            var file = new StreamReader(filePath + "\\..\\" + XMLElementsAndAttributes.CalibrationXML);
-            var xml = file.ReadToEnd();
+            var calibratoionFilePath = Path.Combine(calibrationRootFolder, XMLElementsAndAttributes.CalibrationXML);
+            string calibrationData;
 
-            return GetFloorConfigFromXML(xml);
+            using (var file = new StreamReader(calibratoionFilePath))
+            {
+                calibrationData = file.ReadToEnd();
+            }
+
+            return GetFloorConfigFromXml(calibrationData);    
         }
 
         /// <summary>
@@ -114,7 +120,6 @@ namespace RippleDictionary
                     
                     string type, id, header, content;
                     var screenContents = new Dictionary<string, ScreenContent>();
-                    ScreenContent screenContent;
                     foreach (var tagContent in xel.Elements())
                     {
                         if (tagContent.Name == XMLElementsAndAttributes.ScreenContent)
@@ -123,10 +128,17 @@ namespace RippleDictionary
                             id = tagContent.Attribute(XMLElementsAndAttributes.Id).Value;
                             header = tagContent.Attribute(XMLElementsAndAttributes.Header).Value;
                             content = tagContent.Attribute(XMLElementsAndAttributes.Content).Value;
+                            
+                            var loopVideo = false;
                             var loopVideoObj = tagContent.Attribute(XMLElementsAndAttributes.LoopVideo);
-                            var loopVideo = loopVideoObj != null ? (loopVideoObj.Value.ToLower() == "true" ? (bool)true : (loopVideoObj.Value.ToLower() == "false" ? (bool)false : false)) : false;
+                            if(loopVideoObj != null)
+                            {
+                                loopVideo = loopVideoObj.Value.ToLower() == "true";
+                            }
+                        
+                            //var loopVideo = loopVideoObj != null ? (loopVideoObj.Value.ToLower() == "true" ? (bool)true : (loopVideoObj.Value.ToLower() == "false" ? (bool)false : false)) : false;
 
-                            screenContent = new ScreenContent(GetType(type), id, header, content, loopVideo);
+                            var screenContent = new ScreenContent(GetType(type), id, header, content, loopVideo);
                             screenContents.Add(screenContent.Id, screenContent);
                         }
                     }
@@ -246,7 +258,7 @@ namespace RippleDictionary
                         }
                         else if (tagContent.Name == XMLElementsAndAttributes.LockingPeriod)
 	                    {
-		                    lockingPeriod = Convert.ToDouble(tagContent.Value);
+                            lockingPeriod = double.Parse(tagContent.Value, CultureInfo.InvariantCulture);
 	                    }
                         else if (tagContent.Name == XMLElementsAndAttributes.SystemAutoLockPeriod)
                         {
@@ -322,16 +334,17 @@ namespace RippleDictionary
         ///     System.FormatException
         ///     System.OverflowException
         ///     FloorCalibration.UnparseableXMLException" />
-        private static CalibrationConfiguration GetFloorConfigFromXML(string xml)
+        private static CalibrationConfiguration GetFloorConfigFromXml(string xml)
         {
             var xdoc = XDocument.Load(GenerateRippleDictionaryStreamFromXML(xml));
             CalibrationConfiguration configuration = null;
+
+            if (xdoc.Root == null) return null;
 
             foreach (var xel in xdoc.Root.Elements())
             {
                 if (xel.Name == XMLElementsAndAttributes.Floor)
                 {
-
                     foreach (var tagContent in xel.Elements())
                     {
                         if (tagContent.Name == XMLElementsAndAttributes.CalibrationConfiguration)
@@ -532,7 +545,7 @@ namespace RippleDictionary
 
             try
             {
-                return new Coordinate(Convert.ToDouble(x), Convert.ToDouble(y));
+                return new Coordinate(double.Parse(x, CultureInfo.InvariantCulture), double.Parse(y, CultureInfo.InvariantCulture));
             }
             catch (Exception)
             {
@@ -564,7 +577,7 @@ namespace RippleDictionary
 
             try
             {
-                return new Style(Convert.ToDouble(width), Convert.ToDouble(height));
+                return new Style(double.Parse(width, CultureInfo.InvariantCulture), double.Parse(height, CultureInfo.InvariantCulture));
             }
             catch (Exception)
             {

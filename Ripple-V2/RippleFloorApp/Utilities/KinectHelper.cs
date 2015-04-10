@@ -79,7 +79,8 @@ namespace RippleFloorApp.Utilities
         public KinectHelper()
         {
             //Get the callibration data
-            var config = Dictionary.GetFloorConfigurations(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location));
+            var config = Dictionary.GetFloorConfigurations(Directory.GetCurrentDirectory());
+            
             _frontDistance = config.FrontDistance;
             _backDistance = config.BackDistance;
             _leftDistance = config.LeftDistance;
