@@ -32,11 +32,17 @@
                 //commandParameters is an array of parameters received from Screen
                 console.log(evt.commandParameters);
             });
+
+            document.addEventListener("FloorDetectedRightSwipe", function(evt) {
+
+                alert('Floor says somebody right swiped!');
+            });
+
             rippleHelper.enableKeyboardInput(true);
             document.addEventListener("keyboardInput", function (e) {
                 var input = e.input;
                 if (input != lastInput) {
-                    alert(input)
+                    alert(input);
                 }
                 lastInput = input;
  
@@ -45,6 +51,7 @@
         }
     </script>
 </head>
-<body>
- </body>
+    <body>
+            
+    </body>
 </html>

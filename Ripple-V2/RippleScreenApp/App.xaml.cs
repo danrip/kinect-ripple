@@ -16,8 +16,8 @@ namespace RippleScreenApp
         {
             var top = 0.0;
             var left = 0.0;
-            double HRes = 1280;
-            double VRes = 800;
+            double hRes = 1280;
+            double vRes = 800;
             for (var i = 0; i != e.Args.Length; ++i)
             {
                 switch (e.Args[i].ToLower())
@@ -29,21 +29,22 @@ namespace RippleScreenApp
                         left = Convert.ToDouble(e.Args[++i]);
                         break;
                     case "/vres":
-                        VRes = Convert.ToDouble(e.Args[++i]);
+                        vRes = Convert.ToDouble(e.Args[++i]);
                         break;
                     case "/hres":
-                        HRes = Convert.ToDouble(e.Args[++i]);
+                        hRes = Convert.ToDouble(e.Args[++i]);
                         break;
                 }
             }
 
             //Set the globals
-            Globals.CurrentResolution.VerticalResolution = VRes;
-            Globals.CurrentResolution.HorizontalResolution = HRes;
+            Globals.CurrentResolution.VerticalResolution = vRes;
+            Globals.CurrentResolution.HorizontalResolution = hRes;
             Globals.CurrentResolution.XOrigin = left;
             Globals.CurrentResolution.YOrigin = top;
 
             // Create main application window
+            
             var screenWin = new ScreenWindow
             {
                 WindowStartupLocation = WindowStartupLocation.Manual,
@@ -52,8 +53,8 @@ namespace RippleScreenApp
                 BorderThickness = new Thickness(0.2),
                 BorderBrush = new SolidColorBrush((Color) ColorConverter.ConvertFromString("#0072C6")),
                 WindowStyle = WindowStyle.None,
-                Height = VRes,
-                Width = HRes,
+                Height = vRes,
+                Width = hRes,
                 ResizeMode = ResizeMode.NoResize
             };
             screenWin.Show();

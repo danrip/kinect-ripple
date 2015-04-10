@@ -1360,34 +1360,33 @@ namespace RippleFloorApp
 
         #region Helpers
 
-        private Tile GetFloorTileForID(string TileID)
+        private Tile GetFloorTileForID(string tileId)
         {
-            Tile reqdTile = null;
-            try
+            Tile result = null;
+
+            if (FloorData.Tiles.ContainsKey(tileId))
             {
-                reqdTile = FloorData.Tiles[TileID];
+                result = FloorData.Tiles[tileId];
+                return result;
             }
-            catch (Exception)
+
+            // check the subtiles
+            var subTileId = tileId.Substring(0, tileId.LastIndexOf("SubTile", StringComparison.Ordinal));
+            if (FloorData.Tiles[subTileId].SubTiles.ContainsKey(tileId))
             {
-                try
-                {
-                    reqdTile = FloorData.Tiles[TileID.Substring(0, TileID.LastIndexOf("SubTile"))].SubTiles[TileID];
-                }
-                catch (Exception)
-                {
-                    return null;
-                }
+                result = FloorData.Tiles[subTileId].SubTiles[tileId];
             }
-            return reqdTile;
+
+            return result;
         }
 
-        private void SetAttributesForWindowsControls<InstanceType>(string objectName, string propertyName, object propertyValue)
+        private void SetAttributesForWindowsControls<TInstanceType>(string objectName, string propertyName, object propertyValue)
         {
-            var objectInstanceType = (InstanceType)FindName(objectName);
+            var objectInstanceType = (TInstanceType)FindName(objectName);
 
             if (objectInstanceType != null)
             {
-                var prop = typeof(InstanceType).GetProperty(propertyName);
+                var prop = typeof(TInstanceType).GetProperty(propertyName);
                 prop.SetValue(objectInstanceType, propertyValue, null);
             }
         }

@@ -150,6 +150,7 @@ function executeCommandFromFloor(commandParameters) {
 
 
 function executeExternalCommand(commandName, commandParametersCSV) {
+ 
     if (_RippleHelper.debugMode) {
         if (_RippleHelper.emulatorMode) {
             console.log("EMULATOR MODE IS ON, Command " + commandName + " with Parameters " + commandParametersCSV + " will be executed");

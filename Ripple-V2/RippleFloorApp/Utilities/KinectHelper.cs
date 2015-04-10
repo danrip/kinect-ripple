@@ -78,9 +78,25 @@ namespace RippleFloorApp.Utilities
 
         public KinectHelper()
         {
-            //Get the callibration data
-            var config = Dictionary.GetFloorConfigurations(Directory.GetCurrentDirectory());
-            
+            // get the callibration data
+            var tileConfiguration = Dictionary.GetFloorConfigurations(Directory.GetCurrentDirectory());
+            ConfigureTileSizesAndLocations(tileConfiguration);
+
+            // look for the sensor
+            _sensor = KinectSensor.GetDefault();
+            if (_sensor != null)
+            {
+                Initialize();
+            }
+            else
+            {
+                KinectConnectionState = "Disconnected";
+            }
+        }
+
+        private static void ConfigureTileSizesAndLocations(CalibrationConfiguration config)
+        {
+           
             _frontDistance = config.FrontDistance;
             _backDistance = config.BackDistance;
             _leftDistance = config.LeftDistance;
@@ -117,37 +133,17 @@ namespace RippleFloorApp.Utilities
                 floorWidth[i] = _rightDistance - _leftDistance;
                 floorHeight[i] = _backDistance - _frontDistance;
 
-                _leftTileBoundary[i] = _leftDistance + tileOriginX[i] * floorWidth[i];
-                _topTileBoundary[i] = _frontDistance + tileOriginY[i] * floorHeight[i];
+                _leftTileBoundary[i] = _leftDistance + tileOriginX[i]*floorWidth[i];
+                _topTileBoundary[i] = _frontDistance + tileOriginY[i]*floorHeight[i];
 
-                _rightTileBoundary[i] = _leftDistance + tileOriginX[i] * floorWidth[i] + tileWidth[i] * floorWidth[i];
-                _bottomTileBoundary[i] = _frontDistance + tileOriginY[i] * floorHeight[i] + tileHeight[i] * floorHeight[i];
+                _rightTileBoundary[i] = _leftDistance + tileOriginX[i]*floorWidth[i] + tileWidth[i]*floorWidth[i];
+                _bottomTileBoundary[i] = _frontDistance + tileOriginY[i]*floorHeight[i] + tileHeight[i]*floorHeight[i];
             }
-
-
-            //if (KinectSensor.KinectSensors.Count > 0)
-            //{
-
-            _sensor = KinectSensor.GetDefault();
-            if (_sensor != null)
-            {
-                Initialize();
-            }
-            else
-            {
-                KinectConnectionState = "Disconnected";
-            }
-            //}
-            //else
-            //{
-            //    KinectConnectionState = "Disconnected";
-            //}
-            // activeRecognizer = CreateRecognizer();
         }
 
         #region Event Handlers
 
-        public String KinectConnectionState
+        public string KinectConnectionState
         {
             get { return _kinectConnectionState; }
             set
@@ -264,8 +260,6 @@ namespace RippleFloorApp.Utilities
                 case "SwipeUp":
                     //KinectSwipeDetected = GestureTypes.SwipeUp;
                     break;
-                default:
-                    break;
             }
 
             _clearTimer.Start();
@@ -276,7 +270,7 @@ namespace RippleFloorApp.Utilities
         /// </summary>
         private void RegisterGestures()
         {
-
+            // joined hands
             var joinedhandsSegments = new IRelativeGestureSegment[20];
             var joinedhandsSegment = new JoinedHandsSegment1();
             for (var i = 0; i < 20; i++)
@@ -286,22 +280,31 @@ namespace RippleFloorApp.Utilities
             }
             _gestureController.AddGesture("JoinedHands", joinedhandsSegments);
 
+            // swipe left
             var swipeleftSegments = new IRelativeGestureSegment[3];
             swipeleftSegments[0] = new SwipeLeftSegment1();
             swipeleftSegments[1] = new SwipeLeftSegment2();
             swipeleftSegments[2] = new SwipeLeftSegment3();
+
             _gestureController.AddGesture("SwipeLeft", swipeleftSegments);
 
+            // swipe right
             var swiperightSegments = new IRelativeGestureSegment[3];
+
             swiperightSegments[0] = new SwipeRightSegment1();
             swiperightSegments[1] = new SwipeRightSegment2();
             swiperightSegments[2] = new SwipeRightSegment3();
+            
             _gestureController.AddGesture("SwipeRight", swiperightSegments);
 
+            
+            // swipe up
             var swipeUpSegments = new IRelativeGestureSegment[3];
+            
             swipeUpSegments[0] = new SwipeUpSegment1();
             swipeUpSegments[1] = new SwipeUpSegment2();
             swipeUpSegments[2] = new SwipeUpSegment3();
+           
             _gestureController.AddGesture("SwipeUp", swipeUpSegments);
 
         }
@@ -384,36 +387,31 @@ namespace RippleFloorApp.Utilities
                                 if (Globals.currentAppState == RippleSystemStates.UserPlayingAnimations || Globals.currentAppState == RippleSystemStates.NoUser || Globals.currentAppState == RippleSystemStates.UserDetected)
                                 {
                                     //Run Mouse Interop
-                                    #region Calibrated MouseInterop
+                                    // check if user is standing on the playing field
                                     if ((LeftFeet.Position.Z > _frontDistance && LeftFeet.Position.Z < _backDistance) && (LeftFeet.Position.X > (_leftDistance) && LeftFeet.Position.X < _rightDistance))
                                     {
-                                        var CursorX = (((LeftFeet.Position.Z + RightFeet.Position.Z) / 2 - (_frontDistance)) / (_backDistance - _frontDistance)) * Globals.CurrentResolution.HorizontalResolution;
-                                        CursorX = Globals.CurrentResolution.HorizontalResolution - CursorX;
-                                        var CursorY = (((LeftFeet.Position.X + RightFeet.Position.X) / 2 - (_leftDistance)) / (_rightDistance - _leftDistance)) * Globals.CurrentResolution.VerticalResolution;
-                                        var x = Convert.ToInt32(CursorX);
-                                        var y = Convert.ToInt32(CursorY);
+                                        var cursorX = (((LeftFeet.Position.Z + RightFeet.Position.Z) / 2 - (_frontDistance)) / (_backDistance - _frontDistance)) * Globals.CurrentResolution.HorizontalResolution;
+                                        cursorX = Globals.CurrentResolution.HorizontalResolution - cursorX;
+                                        
+                                        var cursorY = (((LeftFeet.Position.X + RightFeet.Position.X) / 2 - (_leftDistance)) / (_rightDistance - _leftDistance)) * Globals.CurrentResolution.VerticalResolution;
+                                        var x = Convert.ToInt32(cursorX);
+                                        var y = Convert.ToInt32(cursorY);
+                                        
                                         Mouse.OverrideCursor = Cursors.None;
-
-                                        //if (count == 0)
-                                        //{
-                                        //    RippleCommonUtilities.OSNativeMethods.SendMouseInput(x, y, (int)Globals.CurrentResolution.HorizontalResolution, (int)Globals.CurrentResolution.VerticalResolution, true);
-                                        //    count = 10;
-                                        //}
-                                        //count--;
-                                        //RippleCommonUtilities.OSNativeMethods.SendMouseInput(x, y, (int)Globals.CurrentResolution.HorizontalResolution, (int)Globals.CurrentResolution.VerticalResolution, true);
                                         OSNativeMethods.SendMouseInput(x, y, (int)Globals.CurrentResolution.HorizontalResolution, (int)Globals.CurrentResolution.VerticalResolution, false);
                                     }
-                                    #endregion
                                 }
                                 //Run block identification only if not in above mode
                                 else
                                 {
-                                    #region Calibrated Tile Detection
-
                                     var locationChanged = false;
                                     for (var i = 0; i < TileCount; i++)
                                     {
-                                        if ((LeftFeet.Position.Z > _topTileBoundary[i] && LeftFeet.Position.Z < _bottomTileBoundary[i]) && (RightFeet.Position.Z > _topTileBoundary[i] && RightFeet.Position.Z < _bottomTileBoundary[i]) && (leftFeetXPosition > (_leftTileBoundary[i]) && leftFeetXPosition < _rightTileBoundary[i]) && (rightFeetXPosition > (_leftTileBoundary[i]) && rightFeetXPosition < _rightTileBoundary[i]))
+                                        // check if the users feet is inside one of the configured tiles
+                                        if ((LeftFeet.Position.Z > _topTileBoundary[i] && LeftFeet.Position.Z < _bottomTileBoundary[i]) && 
+                                            (RightFeet.Position.Z > _topTileBoundary[i] && RightFeet.Position.Z < _bottomTileBoundary[i]) && 
+                                            (leftFeetXPosition > (_leftTileBoundary[i]) && leftFeetXPosition < _rightTileBoundary[i]) && 
+                                            (rightFeetXPosition > (_leftTileBoundary[i]) && rightFeetXPosition < _rightTileBoundary[i]))
                                         {
                                             CurrentLocation = i;
                                             locationChanged = true;
@@ -425,8 +423,6 @@ namespace RippleFloorApp.Utilities
                                     {
                                         CurrentLocation = -1;
                                     }
-
-                                    #endregion
                                 }
                             }
                             else

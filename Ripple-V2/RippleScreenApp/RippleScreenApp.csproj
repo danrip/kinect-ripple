@@ -98,9 +98,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="DocumentPresentation\DocClasses.cs" />
-    <Compile Include="DocumentPresentation\DocType.cs" />
-    <Compile Include="DocumentPresentation\HelperMethods.cs" />
+    <Compile Include="Utilities\DocumentPresentation\DocClasses.cs" />
+    <Compile Include="Utilities\DocumentPresentation\DocType.cs" />
+    <Compile Include="Utilities\DocumentPresentation\HelperMethods.cs" />
     <Compile Include="Utilities\Helper.cs" />
     <Compile Include="Utilities\MessageReceiver.cs" />
     <Compile Include="Utilities\QuizAnswersWriter.cs" />

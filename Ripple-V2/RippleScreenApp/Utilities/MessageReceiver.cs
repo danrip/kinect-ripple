@@ -21,7 +21,7 @@ namespace RippleScreenApp.Utilities
             {
                 pipeName = "RipplePipe";
                 owner = currentInstance;
-                var pipeThread = new ThreadStart(createPipeServer);
+                var pipeThread = new ThreadStart(CreatePipeServer);
                 var listenerThread = new Thread(pipeThread);
                 listenerThread.SetApartmentState(ApartmentState.STA);
                 listenerThread.IsBackground = true;
@@ -33,12 +33,11 @@ namespace RippleScreenApp.Utilities
             }
         }
 
-        public static void createPipeServer()
+        public static void CreatePipeServer()
         {
             var decoder = Encoding.Default.GetDecoder();
             var bytes = new Byte[BufferSize];
             var chars = new char[BufferSize];
-            var numBytes = 0;
             var msg = new StringBuilder();
 
             try
@@ -48,6 +47,7 @@ namespace RippleScreenApp.Utilities
                 {
                     pipeServer.WaitForConnection();
 
+                    var numBytes = 0;
                     do
                     {
                         msg.Length = 0;
@@ -61,6 +61,7 @@ namespace RippleScreenApp.Utilities
                                 msg.Append(chars, 0, numChars);
                             }
                         } while (numBytes > 0 && !pipeServer.IsMessageComplete);
+                        
                         decoder.Reset();
                         if (numBytes > 0)
                         {

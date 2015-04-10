@@ -21,27 +21,33 @@ namespace RippleScreenApp
     /// </summary>
     public partial class ScreenWindow : Window
     {
-        internal static Ripple rippleData;
+        internal static Ripple RippleData;
+        internal static String PersonName;
+
         private static TextBlock tbElement = new TextBlock();
         private static TextBlock fullScreenTbElement = new TextBlock();
         private static Image imgElement = new Image();
         private static Image fullScreenImgElement = new Image();
-        private static String currentVideoURI = String.Empty;
-        private static ContentType currentScreenContent = ContentType.Nothing;
-        private static bool loopVideo = false;
-        private BackgroundWorker myBackgroundWorker;
-        private BackgroundWorker pptWorker;
-        ScriptingHelper helper;
-        public WindowsFormsHost host;
-        public WebBrowser browserElement;
-        internal static String personName;
-        private long prevRow;
-        private Tile currentTile = null;
-        private bool StartVideoPlayed = false;
-        public static String sessionGuid = String.Empty;
+        private static String _currentVideoUri = String.Empty;
+        private static ContentType _currentScreenContent = ContentType.Nothing;
+        private static bool _loopVideo;
+        
+        private BackgroundWorker _myBackgroundWorker;
+        private BackgroundWorker _pptWorker;
+        private ScriptingHelper _helper;
+        public WindowsFormsHost Host;
+        public WebBrowser BrowserElement;
 
+        public static String SessionGuid = String.Empty;
+
+        private long _prevRow;
+        private Tile _currentTile;
+        private bool _startVideoPlayed;
+
+        
         public ScreenWindow()
         {
+           
             try
             {
                 InitializeComponent();
@@ -59,7 +65,6 @@ namespace RippleScreenApp
                 //Exit and do nothing
                 LoggingHelper.LogTrace(1, "Went wrong in Screen {0}", ex.Message);
             }
-
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -78,7 +83,7 @@ namespace RippleScreenApp
         private void SetObjectProperties()
         {
             //Initialize video properties
-            IntroVideoControl.Source = new Uri(Helper.GetAssetURI(rippleData.Screen.ScreenContents["IntroVideo"].Content));
+            IntroVideoControl.Source = new Uri(Helper.GetAssetURI(RippleData.Screen.ScreenContents["IntroVideo"].Content));
             IntroVideoControl.ScrubbingEnabled = true;
             //Set image elements properties
             imgElement.Stretch = Stretch.Fill;
@@ -100,7 +105,7 @@ namespace RippleScreenApp
             try
             {
                 //Loads the local dictionary data from the configuration XML
-                rippleData = Dictionary.GetRipple(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location));
+                RippleData = Dictionary.GetRipple(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location));
             }
             catch (Exception ex)
             {
@@ -117,15 +122,15 @@ namespace RippleScreenApp
             try
             {
                 Globals.ResetGlobals();
-                currentVideoURI = String.Empty;
-                currentScreenContent = ContentType.Nothing;
-                loopVideo = false;
-                StartVideoPlayed = false;
+                _currentVideoUri = String.Empty;
+                _currentScreenContent = ContentType.Nothing;
+                _loopVideo = false;
+                _startVideoPlayed = false;
 
-                sessionGuid = String.Empty;
+                SessionGuid = String.Empty;
 
                 //Pick up content based on the "LockScreen" ID 
-                ProjectContent(rippleData.Screen.ScreenContents["LockScreen"]);
+                ProjectContent(RippleData.Screen.ScreenContents["LockScreen"]);
 
                 //Commit the telemetry data
                 TelemetryWriter.CommitTelemetryAsync();
@@ -168,22 +173,22 @@ namespace RippleScreenApp
                     Globals.UserName = val.Split(':')[1];
 
                     //Get the person identity for the session
-                    personName = String.IsNullOrEmpty(Globals.UserName) ? Convert.ToString(Guid.NewGuid()) : Globals.UserName;
+                    PersonName = String.IsNullOrEmpty(Globals.UserName) ? Convert.ToString(Guid.NewGuid()) : Globals.UserName;
 
-                    TelemetryWriter.AddTelemetryRow(rippleData.Floor.SetupID, personName, "Unlock", val, "Unlock");
+                    TelemetryWriter.AddTelemetryRow(RippleData.Floor.SetupID, PersonName, "Unlock", val, "Unlock");
 
                     //Set the system state
                     Globals.currentAppState = RippleSystemStates.UserDetected;
 
                     //Play the Intro Content
-                    ProjectIntroContent(rippleData.Screen.ScreenContents["IntroVideo"]);
+                    ProjectIntroContent(RippleData.Screen.ScreenContents["IntroVideo"]);
                 }
                 //Check for gestures
                 else if (val.StartsWith("Gesture"))
                 {
                     OnGestureInput(val.Split(':')[1]);
                 }
-                //Check for HTMl messages
+                //Check for HTML messages
                 else if (val.StartsWith("HTML"))
                 {
                     OnHTMLMessagesReceived(val.Split(':')[1]);
@@ -196,12 +201,12 @@ namespace RippleScreenApp
                 //Check if a content - tile mapping or in general content tag exists
                 else
                 {
-                    if (rippleData.Screen.ScreenContents.ContainsKey(val) && rippleData.Screen.ScreenContents[val].Type != ContentType.Nothing)
+                    if (RippleData.Screen.ScreenContents.ContainsKey(val) && RippleData.Screen.ScreenContents[val].Type != ContentType.Nothing)
                     {
                         //Set the system state
                         Globals.currentAppState = RippleSystemStates.OptionSelected;
 
-                        ProjectContent(rippleData.Screen.ScreenContents[val]);
+                        ProjectContent(RippleData.Screen.ScreenContents[val]);
 
                         LoggingHelper.LogTrace(1, "In Message Received {0} {1}:{2}", TelemetryWriter.telemetryData.Tables[0].Rows.Count, TelemetryWriter.telemetryData.Tables[0].Rows[TelemetryWriter.telemetryData.Tables[0].Rows.Count - 1].ItemArray[6], DateTime.Now);
 
@@ -209,7 +214,7 @@ namespace RippleScreenApp
                         TelemetryWriter.UpdatePreviousEntry();
 
                         //Insert the new entry
-                        TelemetryWriter.AddTelemetryRow(rippleData.Floor.SetupID, personName, ((currentTile = GetFloorTileForID(val))==null)?"Unknown":currentTile.Name, val, (val == "Tile0") ? "Start" : "Option");
+                        TelemetryWriter.AddTelemetryRow(RippleData.Floor.SetupID, PersonName, ((_currentTile = GetFloorTileForID(val))==null)?"Unknown":_currentTile.Name, val, (val == "Tile0") ? "Start" : "Option");
                     }
                     else
                     {
@@ -222,7 +227,7 @@ namespace RippleScreenApp
                         Helper.ClickOnScreenToGetFocus();
 
                         //Stop any existing videos
-                        loopVideo = false;
+                        _loopVideo = false;
                         VideoControl.Source = null;
                         FullScreenVideoControl.Source = null;
 
@@ -234,19 +239,19 @@ namespace RippleScreenApp
                         TitleLabel.Text = "";
 
                         //Dispose the objects
-                        if(browserElement != null)
-                            browserElement.Dispose();
-                        browserElement = null;
+                        if(BrowserElement != null)
+                            BrowserElement.Dispose();
+                        BrowserElement = null;
 
-                        if (host != null)
-                            host.Dispose();
-                        host = null;
+                        if (Host != null)
+                            Host.Dispose();
+                        Host = null;
 
-                        if (helper != null)
-                            helper.PropertyChanged -= helper_PropertyChanged;
-                        helper = null;
+                        if (_helper != null)
+                            _helper.PropertyChanged -= helper_PropertyChanged;
+                        _helper = null;
 
-                        currentScreenContent = ContentType.Nothing;
+                        _currentScreenContent = ContentType.Nothing;
 
                         ShowText("No content available for this option, Please try some other tile option", "No Content");
                     }
@@ -267,13 +272,13 @@ namespace RippleScreenApp
             {
                 if(p.StartsWith("SessionID,"))
                 {
-                    sessionGuid = p;
+                    SessionGuid = p;
                     return;
                 }
 
-                if (helper != null && currentScreenContent == ContentType.HTML)
+                if (_helper != null && _currentScreenContent == ContentType.HTML)
                 {
-                    helper.MessageReceived(p);
+                    _helper.MessageReceived(p);
                 }
 
             }
@@ -289,12 +294,12 @@ namespace RippleScreenApp
             try
             {
                 //PPT Mode - left and right swipe
-                if (inputGesture == GestureTypes.LeftSwipe.ToString() && currentScreenContent == ContentType.PPT)
+                if (inputGesture == GestureTypes.LeftSwipe.ToString() && _currentScreenContent == ContentType.PPT)
                 {
                     //Acts as previous
                     HelperMethods.GotoPrevious();
                 }
-                else if (inputGesture == GestureTypes.RightSwipe.ToString() && currentScreenContent == ContentType.PPT)
+                else if (inputGesture == GestureTypes.RightSwipe.ToString() && _currentScreenContent == ContentType.PPT)
                 {
                     //Check again, Means the presentation ended on clicking next
                     if (!HelperMethods.HasPresentationStarted())
@@ -322,7 +327,7 @@ namespace RippleScreenApp
                     }
                 }
                 //Browser mode
-                else if (currentScreenContent == ContentType.HTML)
+                else if (_currentScreenContent == ContentType.HTML)
                 {
                     OnHTMLMessagesReceived(inputGesture.ToString());
                 }
@@ -348,9 +353,9 @@ namespace RippleScreenApp
             {
                 if (screenContent.Type == ContentType.HTMLMessage)
                 {
-                    if (helper != null && currentScreenContent == ContentType.HTML)
+                    if (_helper != null && _currentScreenContent == ContentType.HTML)
                     {
-                        helper.MessageReceived(screenContent.Content);
+                        _helper.MessageReceived(screenContent.Content);
                         return;
                     }
                 }
@@ -364,7 +369,7 @@ namespace RippleScreenApp
                 Helper.ClickOnScreenToGetFocus();
 
                 //Stop any existing videos
-                loopVideo = false;
+                _loopVideo = false;
                 VideoControl.Source = null;
                 FullScreenVideoControl.Source = null;
 
@@ -376,23 +381,23 @@ namespace RippleScreenApp
                 TitleLabel.Text = "";
 
                 //Dispose the objects
-                if (browserElement != null)
-                    browserElement.Dispose();
-                browserElement = null;
+                if (BrowserElement != null)
+                    BrowserElement.Dispose();
+                BrowserElement = null;
 
-                if (host != null)
-                    host.Dispose();
-                host = null;
+                if (Host != null)
+                    Host.Dispose();
+                Host = null;
 
-                if (helper != null)
-                    helper.PropertyChanged -= helper_PropertyChanged;
-                helper = null;
+                if (_helper != null)
+                    _helper.PropertyChanged -= helper_PropertyChanged;
+                _helper = null;
 
-                currentScreenContent = screenContent.Type;
+                _currentScreenContent = screenContent.Type;
 
-                if (screenContent.Id == "Tile0" && StartVideoPlayed)
+                if (screenContent.Id == "Tile0" && _startVideoPlayed)
                 {
-                    currentScreenContent = ContentType.Image;
+                    _currentScreenContent = ContentType.Image;
                     ShowImage("\\Assets\\Images\\default_start.png", screenContent.Header);
                     return;
                 }
@@ -412,9 +417,9 @@ namespace RippleScreenApp
                         ShowText(screenContent.Content, screenContent.Header);
                         break;
                     case ContentType.Video:
-                        loopVideo = (screenContent.LoopVideo == null) ? false : Convert.ToBoolean(screenContent.LoopVideo);
+                        _loopVideo = (screenContent.LoopVideo == null) ? false : Convert.ToBoolean(screenContent.LoopVideo);
                         if (screenContent.Id == "Tile0")
-                            StartVideoPlayed = true;
+                            _startVideoPlayed = true;
                         ShowVideo(screenContent.Content, screenContent.Header);
                         break;
                 }
@@ -439,7 +444,7 @@ namespace RippleScreenApp
                 Helper.ClickOnScreenToGetFocus();
 
                 //Stop any existing videos
-                loopVideo = false;
+                _loopVideo = false;
                 VideoControl.Source = null;
                 FullScreenVideoControl.Source = null;
 
@@ -450,15 +455,15 @@ namespace RippleScreenApp
                 //Clear the header text
                 TitleLabel.Text = "";
 
-                if (browserElement != null)
-                    browserElement.Dispose();
-                browserElement = null;
-                if (host != null)
-                    host.Dispose();
-                host = null;
-                if (helper != null)
-                    helper.PropertyChanged -= helper_PropertyChanged;
-                helper = null;
+                if (BrowserElement != null)
+                    BrowserElement.Dispose();
+                BrowserElement = null;
+                if (Host != null)
+                    Host.Dispose();
+                Host = null;
+                if (_helper != null)
+                    _helper.PropertyChanged -= helper_PropertyChanged;
+                _helper = null;
 
                 //Play the Intro video 
                 TitleLabel.Text = "";
@@ -471,10 +476,10 @@ namespace RippleScreenApp
                 IntroVideoControl.Play();
                 UpdateLayout();
 
-                myBackgroundWorker = new BackgroundWorker();
-                myBackgroundWorker.DoWork += myBackgroundWorker_DoWork;
-                myBackgroundWorker.RunWorkerCompleted += myBackgroundWorker_RunWorkerCompleted;
-                myBackgroundWorker.RunWorkerAsync(rippleData.Floor.Start.IntroVideoWaitPeriod);
+                _myBackgroundWorker = new BackgroundWorker();
+                _myBackgroundWorker.DoWork += myBackgroundWorker_DoWork;
+                _myBackgroundWorker.RunWorkerCompleted += myBackgroundWorker_RunWorkerCompleted;
+                _myBackgroundWorker.RunWorkerAsync(RippleData.Floor.Start.IntroVideoWaitPeriod);
             }
             catch (Exception ex)
             {
@@ -514,8 +519,8 @@ namespace RippleScreenApp
                 if (String.IsNullOrEmpty(header))
                 {
                     //Show the full screen video control 
-                    currentVideoURI = Helper.GetAssetURI(Content);
-                    FullScreenVideoControl.Source = new Uri(currentVideoURI);
+                    _currentVideoUri = Helper.GetAssetURI(Content);
+                    FullScreenVideoControl.Source = new Uri(_currentVideoUri);
                     FullScreenContentGrid.Visibility = Visibility.Collapsed;
                     FullScreenVideoGrid.Visibility = Visibility.Visible;
                     FullScreenVideoControl.Play();
@@ -523,8 +528,8 @@ namespace RippleScreenApp
                 else
                 {
                     TitleLabel.Text = header;
-                    currentVideoURI = Helper.GetAssetURI(Content);
-                    VideoControl.Source = new Uri(currentVideoURI);
+                    _currentVideoUri = Helper.GetAssetURI(Content);
+                    VideoControl.Source = new Uri(_currentVideoUri);
                     ContentGrid.Visibility = Visibility.Collapsed;
                     FullScreenContentGrid.Visibility = Visibility.Collapsed;
                     FullScreenVideoGrid.Visibility = Visibility.Collapsed;
@@ -684,30 +689,30 @@ namespace RippleScreenApp
                 {
                     //Show the full screen video control  
                     //Display HTML content
-                    host = new WindowsFormsHost();
-                    browserElement = new WebBrowser();
-                    browserElement.ScriptErrorsSuppressed = true;
-                    helper = new ScriptingHelper(this);
-                    browserElement.ObjectForScripting = helper;
-                    host.Child = browserElement;
-                    helper.PropertyChanged += helper_PropertyChanged;
+                    Host = new WindowsFormsHost();
+                    BrowserElement = new WebBrowser();
+                    BrowserElement.ScriptErrorsSuppressed = true;
+                    _helper = new ScriptingHelper(this);
+                    BrowserElement.ObjectForScripting = _helper;
+                    Host.Child = BrowserElement;
+                    _helper.PropertyChanged += helper_PropertyChanged;
                     FullScreenContentGrid.Children.Clear();
-                    FullScreenContentGrid.Children.Add(host);
+                    FullScreenContentGrid.Children.Add(Host);
                     FullScreenContentGrid.Visibility = Visibility.Visible;
                     FullScreenVideoGrid.Visibility = Visibility.Collapsed;
                 }
                 else
                 {
                     TitleLabel.Text = header;
-                    host = new WindowsFormsHost();
-                    browserElement = new WebBrowser();
-                    browserElement.ScriptErrorsSuppressed = true;
-                    helper = new ScriptingHelper(this);
-                    host.Child = browserElement;
-                    browserElement.ObjectForScripting = helper;
-                    helper.PropertyChanged += helper_PropertyChanged;
+                    Host = new WindowsFormsHost();
+                    BrowserElement = new WebBrowser();
+                    BrowserElement.ScriptErrorsSuppressed = true;
+                    _helper = new ScriptingHelper(this);
+                    Host.Child = BrowserElement;
+                    BrowserElement.ObjectForScripting = _helper;
+                    _helper.PropertyChanged += helper_PropertyChanged;
                     ContentGrid.Children.Clear();
-                    ContentGrid.Children.Add(host);
+                    ContentGrid.Children.Add(Host);
                     ContentGrid.Visibility = Visibility.Visible;
                     FullScreenContentGrid.Visibility = Visibility.Collapsed;
                     FullScreenVideoGrid.Visibility = Visibility.Collapsed;
@@ -726,7 +731,7 @@ namespace RippleScreenApp
                 {
                     pageUri = Content;
                 }
-                browserElement.Navigate(pageUri);
+                BrowserElement.Navigate(pageUri);
                 UpdateLayout();
             }
             catch (Exception ex)
@@ -742,13 +747,13 @@ namespace RippleScreenApp
             Tile reqdTile = null;
             try
             {
-                reqdTile = rippleData.Floor.Tiles[TileID];
+                reqdTile = RippleData.Floor.Tiles[TileID];
             }
             catch (Exception)
             {
                 try
                 {
-                    reqdTile = rippleData.Floor.Tiles[TileID.Substring(0, TileID.LastIndexOf("SubTile"))].SubTiles[TileID];
+                    reqdTile = RippleData.Floor.Tiles[TileID.Substring(0, TileID.LastIndexOf("SubTile"))].SubTiles[TileID];
                 }
                 catch (Exception)
                 {
@@ -761,20 +766,20 @@ namespace RippleScreenApp
 
         private void VideoControl_MediaEnded(object sender, RoutedEventArgs e)
         {
-            if (currentScreenContent == ContentType.Video && loopVideo && (!String.IsNullOrEmpty(currentVideoURI)))
+            if (_currentScreenContent == ContentType.Video && _loopVideo && (!String.IsNullOrEmpty(_currentVideoUri)))
             {
                 //Replay the video
-                VideoControl.Source = new Uri(currentVideoURI);
+                VideoControl.Source = new Uri(_currentVideoUri);
                 VideoControl.Play();
             }
         }
 
         private void FullScreenVideoControl_MediaEnded(object sender, RoutedEventArgs e)
         {
-            if (currentScreenContent == ContentType.Video && loopVideo && (!String.IsNullOrEmpty(currentVideoURI)))
+            if (_currentScreenContent == ContentType.Video && _loopVideo && (!String.IsNullOrEmpty(_currentVideoUri)))
             {
                 //Replay the video
-                FullScreenVideoControl.Source = new Uri(currentVideoURI);
+                FullScreenVideoControl.Source = new Uri(_currentVideoUri);
                 FullScreenVideoControl.Play();
             }
         }
@@ -783,7 +788,7 @@ namespace RippleScreenApp
         {
             //Set the system state
             Globals.currentAppState = RippleSystemStates.UserWaitToGoOnStart;
-            ProjectContent(rippleData.Screen.ScreenContents["GotoStart"]);
+            ProjectContent(RippleData.Screen.ScreenContents["GotoStart"]);
         }
 
         private void IntroVideoControl_MediaEnded(object sender, RoutedEventArgs e)
@@ -811,7 +816,7 @@ namespace RippleScreenApp
                 {
                     if (e.PropertyName == "SendMessage")
                     {
-                        if ((!String.IsNullOrEmpty(scriptingHelper.SendMessage)) && currentScreenContent == ContentType.HTML)
+                        if ((!String.IsNullOrEmpty(scriptingHelper.SendMessage)) && _currentScreenContent == ContentType.HTML)
                         {
                             //Send the screen a message for HTML parameter passing
                             MessageReceiver.SendMessage("HTML:" + scriptingHelper.SendMessage);

@@ -42,7 +42,7 @@ namespace RippleScreenApp.Utilities
         {
             try
             {
-                mExternalWPF.browserElement.Document.InvokeScript("executeCommandFromFloor", new Object[]{messageParam});
+                mExternalWPF.BrowserElement.Document.InvokeScript("executeCommandFromFloor", new Object[]{messageParam});
             }
             catch (Exception ex)
             {
@@ -67,11 +67,11 @@ namespace RippleScreenApp.Utilities
                         commandExecuted = true;
                         break;
                     case "saveFeedback":
-                        QuizAnswersWriter.CommitQuizAnswersAsync(commandParameters, ScreenWindow.personName, ScreenWindow.rippleData.Floor.SetupID);
+                        QuizAnswersWriter.CommitQuizAnswersAsync(commandParameters, ScreenWindow.PersonName, ScreenWindow.RippleData.Floor.SetupID);
                         commandExecuted = true;
                         break;
                     case "GetSessionID":
-                        mExternalWPF.browserElement.Document.InvokeScript("executeCommandFromFloor", new Object[] { ScreenWindow.sessionGuid });
+                        mExternalWPF.BrowserElement.Document.InvokeScript("executeCommandFromFloor", new Object[] { ScreenWindow.SessionGuid });
                         commandExecuted = true;
                         break;
                     //case "PrintDiscount":

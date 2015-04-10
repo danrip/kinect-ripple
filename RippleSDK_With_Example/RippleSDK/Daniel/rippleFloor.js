@@ -85,7 +85,7 @@ function executeExternalCommand(commandName, commandParametersCSV) {
 }
 
 function sendMessageToFrontScreen(commandName, commandParameters) {
-
+    alert('Sending message to front screen...');
     var commandParametersCSV = "";
     for (i = 0; i < commandParameters.length; ++i) {
         commandParametersCSV = commandParametersCSV.concat(",", commandParameters[i]);
