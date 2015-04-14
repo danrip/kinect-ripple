@@ -80,13 +80,13 @@ namespace RippleFloorApp
                 autoLogoutWorker.DoWork += autoLogoutWorker_DoWork;
                 autoLogoutWorker.RunWorkerCompleted += autoLogoutWorker_RunWorkerCompleted;
 
-                //Start the auto - lock thread
+                //Start the auto-lougout thread
                 autoLogoutWorker.RunWorkerAsync();
             }
             catch (Exception ex)
             {
                 //Exit and do nothing
-                LoggingHelper.LogTrace(1, "Went wrong in Floor constructor {0}", ex.Message);
+                LoggingHelper.LogTrace(1, "Something went wrong in Floor constructor : {0}", ex.Message);
             }
         }
 
@@ -129,8 +129,6 @@ namespace RippleFloorApp
                 LoggingHelper.LogTrace(1, "Went wrong in OnHTMLMessagesReceived received for floor {0}", ex.Message);
             }
         }
-
-        #region System Initialize
 
         private void LoadData()
         {
@@ -232,13 +230,11 @@ namespace RippleFloorApp
             {
                 val = sbItem.Value * ratio;
                 sbItem.SetValue(EasingDoubleKeyFrame.ValueProperty, val);
-                //((EasingDoubleKeyFrame)((DoubleAnimationUsingKeyFrames)liveTile.Children[0]).KeyFrames[index]).SetValue(EasingDoubleKeyFrame.ValueProperty, val);
             }
             foreach (EasingDoubleKeyFrame sbItem in ((DoubleAnimationUsingKeyFrames)_liveTile.Children[1]).KeyFrames)
             {
                 val = sbItem.Value * ratio;
                 sbItem.SetValue(EasingDoubleKeyFrame.ValueProperty, val);
-                //((EasingDoubleKeyFrame)((DoubleAnimationUsingKeyFrames)liveTile.Children[0]).KeyFrames[index++]).SetValue(EasingDoubleKeyFrame.ValueProperty, val);
             }
         }
 
@@ -252,18 +248,18 @@ namespace RippleFloorApp
 
             var colorAnim = (ColorAnimationUsingKeyFrames)existingTileTransition.Children[1];
 
-            DoubleAnimationUsingKeyFrames dAnim = null;
-            ColorAnimationUsingKeyFrames cAnim = null;
             _tileTransitionSb.Children.Clear();
             //Add the above two animations for every tile except start
             foreach (var tile in FloorData.Tiles.Keys)
             {
                 if (!tile.Equals("Tile0"))
                 {
-                    dAnim = doubleAnim.Clone();
-                    cAnim = colorAnim.Clone();
+                    var dAnim = doubleAnim.Clone();
+                    var cAnim = colorAnim.Clone();
+                    
                     Storyboard.SetTarget(dAnim, (Grid)FindName(tile));
                     Storyboard.SetTarget(cAnim, (Grid)FindName(tile));
+                    
                     _tileTransitionSb.Children.Add(dAnim);
                     _tileTransitionSb.Children.Add(cAnim);
                 }
@@ -492,16 +488,19 @@ namespace RippleFloorApp
         private void FloorVideoControl_MediaEnded(object sender, RoutedEventArgs e)
         {
             //Play the Ripple video
-            ((MediaElement)FindName("FloorVideoControl")).Source = new Uri(HelperMethods.GetAssetUri(FloorData.UpperTile.Content));
-            ((MediaElement)FindName("FloorVideoControl")).Play();
-        }
+            var mediaElement = (MediaElement)FindName("FloorVideoControl");
+            if (mediaElement != null)
+                mediaElement.Source = new Uri(HelperMethods.GetAssetUri(FloorData.UpperTile.Content));
 
-        #endregion
+            var findName = (MediaElement)FindName("FloorVideoControl");
+            if (findName != null)
+                findName.Play();
+        }
 
         #region Kinect Handlers
         /// <summary>
-        /// Whenever Kinect detects some location value for the skeleton or some gesture
-        /// This function gets triggered
+        /// Whenever Kinect detects some location value for the skeleton or some gesture,
+        /// this function gets triggered
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -510,13 +509,14 @@ namespace RippleFloorApp
             var kinectInfo = sender as KinectHelper;
             if (kinectInfo != null)
             {
-                if (e.PropertyName == "CurrentLocation")
+                switch (e.PropertyName)
                 {
-                    OnSelectedBox(kinectInfo.CurrentLocation);
-                }
-                else if (e.PropertyName == "KinectSwipeDetected")
-                {
-                    OnGestureDetected(kinectInfo.KinectGestureDetected);
+                    case "CurrentLocation":
+                        OnSelectedBox(kinectInfo.CurrentLocation);
+                        break;
+                    case "KinectSwipeDetected":
+                        OnGestureDetected(kinectInfo.KinectGestureDetected);
+                        break;
                 }
             }
         }
@@ -543,50 +543,7 @@ namespace RippleFloorApp
                 {
                     UnlockRippleSystem();
                 }
-                #region Not needed anymore
-                //To exit user animations using right swipe
-                //else if (Globals.currentAppState == RippleSystemStates.UserPlayingAnimations && type == GestureTypes.RightSwipe)
-                //{
-                //    //Dispose the objects
-                //    if (player != null)
-                //    {
-                //        //Stop the flash.
-                //        player.Stop();
-                //        player.Width = 0;
-                //        player.Height = 0;
-                //        player.Dispose();
-                //        host.Dispose();
-                //        player = null;
-                //        host = null;
-                //    }
-                //    else if(helper != null)
-                //    {
-                //        //Exit the game
-                //        if (helper != null)
-                //        {
-                //            helper.PropertyChanged -= helper_PropertyChanged;
-                //            if(browserElement != null)
-                //                browserElement.Dispose();
-                //            browserElement = null;
-                //            helper = null;
-                //        }
-                //    }
-
-                //    //Start the video
-                //    ((MediaElement)this.FindName("FloorVideoControl")).Play();
-
-                //    //Send the screen a message
-                //    Utilities.MessageSender.SendMessage("GotoStart");
-
-                //    //Set the system state
-                //    Globals.currentAppState = RippleSystemStates.UserWaitToGoOnStart;
-
-                //    Globals.CurrentlySelectedParent = 0;
-
-                //    //Show the start options
-                //    ArrangeFloor();
-                //} 
-                #endregion
+              
                 //Check if these are gestures which need to be sent to the screen
                 else if (Globals.currentAppState == RippleSystemStates.OptionSelected || Globals.currentAppState == RippleSystemStates.Start)
                 {
@@ -615,12 +572,12 @@ namespace RippleFloorApp
         #endregion
 
         #region Options Code
-        private void OnSelectedBox(int value)
+        private void OnSelectedBox(int selectedBox)
         {
             try
             {
-                //Check if the value is not relevant
-                if (value < 0)
+                //Check if the value is not relevant (negative values implies not standing on the playing field at all?)
+                if (selectedBox < 0)
                 {
                     //Reset the time stamp and do nothing
                     Globals.currentBoxTimeStamp = DateTime.Now;
@@ -628,65 +585,48 @@ namespace RippleFloorApp
                     
                     return;
                 }
+
                 Globals.PreviouslySelectedBox = Globals.CurrentlySelectedBox;
-                Globals.CurrentlySelectedBox = value;
+                Globals.CurrentlySelectedBox = selectedBox;
                 Globals.currentUserTimestamp = DateTime.Now;
+
                 //Check if the same box has been selected
-                if (Globals.PreviouslySelectedBox == value)
+                if (Globals.PreviouslySelectedBox == selectedBox)
                 {
-                    //Check if the lockin period has elapsed
-                    _now = DateTime.Now;
-                    if ((_now - Globals.currentBoxTimeStamp).TotalSeconds >= Convert.ToDouble(FloorData.LockingPeriod))
+                    //Check if the locking period has elapsed
+                    if ((DateTime.Now - Globals.currentBoxTimeStamp).TotalSeconds >= Convert.ToDouble(FloorData.LockingPeriod))
                     {
-                        #region Box selected
-
                         //Get the tile action type
-                        var tileAction = TileAction.Standard;
-                        //Main Option
-                        if (Globals.currentAppState == RippleSystemStates.Start)
-                            tileAction = FloorData.Tiles["Tile" + value].Action;
-                        else if (Globals.currentAppState == RippleSystemStates.OptionSelected && value != 0)
-                            tileAction = FloorData.Tiles["Tile" + Globals.CurrentlySelectedParent].SubTiles["Tile" + Globals.CurrentlySelectedParent + "SubTile" + value].Action;
-
-                        //Return for static tiles
-                        //Return in case the Floor is in QR Mode or if tile does nothing
+                        var tileAction = GetTileAction(selectedBox);
                         if (tileAction == TileAction.Nothing)
                             return;
 
                         if (tileAction != TileAction.NothingOnFloor)
-                            StartAnimationInBox(value, false);
+                            StartAnimationInBox(selectedBox, false);
 
                         //Check if same as the last selected option
-                        if (_lastSelectedOptionName == "Tile" + value && Globals.currentAppState != RippleSystemStates.UserWaitToGoOnStart)
+                        if (_lastSelectedOptionName == "Tile" + selectedBox && Globals.currentAppState != RippleSystemStates.UserWaitToGoOnStart)
                             return;
 
-                        _lastSelectedOptionName = "Tile" + value;
+                        _lastSelectedOptionName = "Tile" + selectedBox;
 
                         //Start selected
-                        if (value == 0)
+                        if (selectedBox == 0)
                         {
                             OnStartSelected();
                         }
-
-                        //Boxes selected
-                        //Stop tracking of other boxes during QR code mode
                         else if (!_qrMode)
                         {
-                            OnOptionSelected(value);
+                            OnOptionSelected(selectedBox);
                         }
-                        #endregion
                     }
-                    else
-                        return;
                 }
                 else
                 {
                     //Reset the time stamp and start the animation on the floor
                     Globals.currentBoxTimeStamp = DateTime.Now;
-                    StartAnimationInBox(value, true);
+                    StartAnimationInBox(selectedBox, true);
                 }
-
-
             }
             catch (Exception ex)
             {
@@ -695,9 +635,30 @@ namespace RippleFloorApp
             }
         }
 
+        private TileAction GetTileAction(int value)
+        {
+            var tileAction = TileAction.Nothing;
+
+            if (Globals.currentAppState == RippleSystemStates.Start)
+            {
+                tileAction = FloorData.Tiles["Tile" + value].Action;
+            }
+            else
+            {
+                if (Globals.currentAppState == RippleSystemStates.OptionSelected && value != 0)
+                {
+                    tileAction = FloorData.Tiles["Tile" + Globals.CurrentlySelectedParent].SubTiles["Tile" + Globals.CurrentlySelectedParent + "SubTile" + value].Action;
+                }
+            }
+
+            return tileAction;
+        }
+
         public void OnStartSelected()
         {
-            if (Globals.currentAppState == RippleSystemStates.UserWaitToGoOnStart || Globals.currentAppState == RippleSystemStates.OptionSelected || Globals.currentAppState == RippleSystemStates.UserPlayingAnimations)
+            if (Globals.currentAppState == RippleSystemStates.UserWaitToGoOnStart ||
+                Globals.currentAppState == RippleSystemStates.OptionSelected || 
+                Globals.currentAppState == RippleSystemStates.UserPlayingAnimations)
             {
                 _qrMode = false;
                 Globals.CurrentlySelectedParent = 0;
@@ -708,7 +669,7 @@ namespace RippleFloorApp
             }
         }
 
-        public void OnOptionSelected(int BoxNumber)
+        public void OnOptionSelected(int boxNumber)
         {
             try
             {
@@ -719,8 +680,8 @@ namespace RippleFloorApp
                 //User selected Main Option
                 if (Globals.currentAppState == RippleSystemStates.Start)
                 {
-                    tileID = "Tile" + BoxNumber;
-                    Globals.CurrentlySelectedParent = BoxNumber;
+                    tileID = "Tile" + boxNumber;
+                    Globals.CurrentlySelectedParent = boxNumber;
                     Globals.currentAppState = RippleSystemStates.OptionSelected;
                     Globals.SelectedOptionFullName = tileID;
 
@@ -733,7 +694,7 @@ namespace RippleFloorApp
                         ((Grid)FindName("MainOptionGrid")).Visibility = Visibility.Visible;
                         ((TextBlock)FindName("MainOptionGridLabel")).Text = FloorData.Tiles[tileID].Name;
                         //Layout the options
-                        LayoutTiles(BoxNumber);
+                        LayoutTiles(boxNumber);
                     }
                     else if (action == TileAction.Logout)
                     {
@@ -776,7 +737,7 @@ namespace RippleFloorApp
                 else if (Globals.currentAppState == RippleSystemStates.OptionSelected)
                 {
                     var parentTileID = "Tile" + Globals.CurrentlySelectedParent;
-                    tileID = "Tile" + Globals.CurrentlySelectedParent + "SubTile" + BoxNumber;
+                    tileID = "Tile" + Globals.CurrentlySelectedParent + "SubTile" + boxNumber;
                     action = FloorData.Tiles[parentTileID].SubTiles[tileID].Action;
                     Globals.SelectedOptionFullName = tileID;
 
@@ -819,7 +780,7 @@ namespace RippleFloorApp
             }
             catch (Exception ex)
             {
-                LoggingHelper.LogTrace(1, "Went wrong in OnOptionSelected for box number {1}: {0}", ex.Message, BoxNumber);
+                LoggingHelper.LogTrace(1, "Went wrong in OnOptionSelected for box number {1}: {0}", ex.Message, boxNumber);
             }
 
         }
@@ -832,28 +793,16 @@ namespace RippleFloorApp
         {
             try
             {
-                //Dispose if the initial animation is still active, in case the unlock happened through any method except gesture or animation
-                //if (floorData.Start.Animation.AnimType == AnimationType.Flash && player != null)
-                //{
-                //    //Stop the flash.
-                //    player.Stop();
-                //    player.Width = 0;
-                //    player.Height = 0;
-                //    player.Dispose();
-                //    host.Dispose();
-                //    player = null;
-                //    host = null;
-                //}
-
-                //else 
                 if (FloorData.Start.Animation.AnimType == AnimationType.HTML && BrowserElement != null)
                 {
                     if (BrowserElement != null)
                         BrowserElement.Dispose();
+
                     BrowserElement = null;
 
                     if (BrowserHost != null)
                         BrowserHost.Dispose();
+
                     BrowserHost = null;
 
                     _helper = null;
@@ -862,6 +811,7 @@ namespace RippleFloorApp
                 FlashContainer.Children.Clear();
                 MainContainer.Visibility = Visibility.Visible;
                 FlashContainer.Visibility = Visibility.Collapsed;
+
                 ((Grid)FindName("MainOptionGrid")).Visibility = Visibility.Collapsed;
                 ((Image)FindName("OverlayImage")).Visibility = Visibility.Collapsed;
 
@@ -882,11 +832,8 @@ namespace RippleFloorApp
                 LoggingHelper.LogTrace(1, "Went wrong in Arrange Floor {0} {1}", ex.Message, ex.StackTrace);
             }
 
-            //DoTileTransitionForMainOption(0);
-
             //Click on the screen
             RippleCommonUtilities.HelperMethods.ClickOnFloorToGetFocus();
-
         }
 
         public void ShowStartOptions()
@@ -896,6 +843,7 @@ namespace RippleFloorApp
                 //Show the floor options
                 MainContainer.Visibility = Visibility.Visible;
                 FlashContainer.Visibility = Visibility.Collapsed;
+
                 ((Image)FindName("OverlayImage")).Visibility = Visibility.Collapsed;
                 ((Grid)FindName("MainOptionGrid")).Visibility = Visibility.Collapsed;
 
@@ -918,7 +866,8 @@ namespace RippleFloorApp
 
         private void LayoutTiles(int parent)
         {
-            String tileID = null;
+            String tileId = null;
+
             //Reset the labels to blank to setup a blank floor
             if (parent < 0)
             {
@@ -938,13 +887,11 @@ namespace RippleFloorApp
                         ((Grid)FindName(InnerContent + item.Id)).Children.Clear();
 
                         //Clear the animation if any
-                        try
+                        var storyBoard = (Storyboard)FindName(item.Id + "SB");
+                        if (storyBoard != null)
                         {
-                            var sbt = (Storyboard)FindName(item.Id + "SB");
-                            sbt.Stop();
+                            storyBoard.Stop();
                         }
-                        catch (Exception) { }
-
 
                         //Set the content for the tile if the tile type is not text
                         if (item.TileType != TileType.Text && (!String.IsNullOrEmpty(item.Content)))
@@ -962,25 +909,22 @@ namespace RippleFloorApp
                 {
                     try
                     {
-                        tileID = item.Id.Substring(item.Id.LastIndexOf("Tile"));
+                        tileId = item.Id.Substring(item.Id.LastIndexOf("Tile"));
 
                         //Set the label for the tile
-                        SetAttributesForWindowsControls<TextBlock>(tileID + Label, "Text", item.Name);
+                        SetAttributesForWindowsControls<TextBlock>(tileId + Label, "Text", item.Name);
 
                         //Clear the inner content grid either way
-                        ((Grid)FindName(InnerContent + tileID)).Children.Clear();
+                        ((Grid)FindName(InnerContent + tileId)).Children.Clear();
 
                         //Clear the animation if any
-                        try
-                        {
-                            var sbt = (Storyboard)FindName(tileID + "SB");
-                            sbt.Stop();
-                        }
-                        catch (Exception) { }
+                       
+                        var storyBoard = (Storyboard)FindName(tileId + "SB");
+                        if (storyBoard != null) storyBoard.Stop();
 
                         //Set the content for the tile if the tile type is not text
                         if (item.TileType != TileType.Text && (!String.IsNullOrEmpty(item.Content)))
-                            ShowTileContent(tileID, item.TileType, HelperMethods.GetAssetUri(item.Content));
+                            ShowTileContent(tileId, item.TileType, HelperMethods.GetAssetUri(item.Content));
                     }
                     catch (Exception)
                     {
@@ -988,13 +932,14 @@ namespace RippleFloorApp
                     }
                 }
             }
+
             UpdateLayout();
 
             //Call tile transitions
             DoTileTransitionForMainOption(Globals.CurrentlySelectedParent);
         }
 
-        private void ShowTileContent(String tileID, TileType tileType, String contentURI)
+        private void ShowTileContent(String tileId, TileType tileType, String contentUri)
         {
             try
             {
@@ -1003,39 +948,49 @@ namespace RippleFloorApp
                     case TileType.OnlyMedia:
                         //Check the content type
                         //Image
-                        if (contentURI.Contains("\\Assets\\Images\\"))
+                        if (contentUri.Contains("\\Assets\\Images\\"))
                         {
-                            var img = new Image();
-                            img.Source = new BitmapImage(new Uri(contentURI));
-                            img.Style = (Style)App.Current.FindResource("TileImageStyle");
-                            ((Grid)FindName(InnerContent + tileID)).Children.Add(img);
+                            var img = new Image
+                            {
+                                Source = new BitmapImage(new Uri(contentUri)),
+                                Style = (Style) Application.Current.FindResource("TileImageStyle")
+                            };
+                            ((Grid)FindName(InnerContent + tileId)).Children.Add(img);
                         }
                         //Video
-                        else if (contentURI.Contains("\\Assets\\Videos\\"))
+                        else if (contentUri.Contains("\\Assets\\Videos\\"))
                         {
-                            var video = new MediaElement();
-                            video.Source = new Uri(contentURI);
-                            ((Grid)FindName(InnerContent + tileID)).Children.Add(video);
+                            var video = new MediaElement { Source = new Uri(contentUri) };
+                            ((Grid)FindName(InnerContent + tileId)).Children.Add(video);
+                            
                             video.Play();
                         }
                         break;
+
                     case TileType.TextThumbnail:
-                        var thum_img = new Image();
-                        thum_img.Source = new BitmapImage(new Uri(contentURI));
-                        thum_img.Style = (Style)App.Current.FindResource("ThumbnailImageStyle");
-                        ((Grid)FindName(InnerContent + tileID)).Children.Add(thum_img);
+                        var thumbnailImage = new Image
+                        {
+                            Source = new BitmapImage(new Uri(contentUri)),
+                            Style = (Style) Application.Current.FindResource("ThumbnailImageStyle")
+                        };
+                        ((Grid)FindName(InnerContent + tileId)).Children.Add(thumbnailImage);
                         break;
+                    
                     case TileType.LiveTile:
-                        var tile_img = new Image();
-                        tile_img.Name = "ImageAndText" + InnerContent + tileID;
-                        tile_img.Source = new BitmapImage(new Uri(contentURI));
-                        tile_img.Style = (Style)App.Current.FindResource("TileImageStyle");
-                        ((Grid)FindName(InnerContent + tileID)).Children.Add(tile_img);
+                        var tileImage = new Image
+                        {
+                            Name = "ImageAndText" + InnerContent + tileId,
+                            Source = new BitmapImage(new Uri(contentUri)),
+                            Style = (Style) Application.Current.FindResource("TileImageStyle")
+                        };
+                        ((Grid)FindName(InnerContent + tileId)).Children.Add(tileImage);
+                        
                         UpdateLayout();
+                        
                         //Add live tile animation
                         //Set for image
                         var sb = _liveTile.Clone();
-                        sb.Name = tileID + "SB";
+                        sb.Name = tileId + "SB";
                         try
                         {
                             RegisterName(sb.Name, sb);
@@ -1046,37 +1001,18 @@ namespace RippleFloorApp
                             UnregisterName(sb.Name);
                             RegisterName(sb.Name, sb);
                         }
-                        Storyboard.SetTarget(sb.Children[0], tile_img);
-                        Storyboard.SetTarget(sb.Children[1], ((TextBlock)FindName(tileID + Label)));
-                        Storyboard.SetTarget(sb.Children[2], ((TextBlock)FindName(tileID + Label)));
-                        //Set keytimes to random values
-                        //double val = rnd.NextDouble() * 2;
-                        ////round off
-                        //val = Math.Round(val, 2);
-                        //TimeSpan tp = TimeSpan.FromSeconds(val);
-                        //KeyTime newVal = KeyTime.FromTimeSpan(TimeSpan.FromSeconds(0));
-                        //foreach (EasingDoubleKeyFrame sbItem in ((DoubleAnimationUsingKeyFrames)sb.Children[0]).KeyFrames)
-                        //{
-                        //    newVal = KeyTime.FromTimeSpan(sbItem.KeyTime.TimeSpan + tp);
-                        //    sbItem.SetValue(EasingDoubleKeyFrame.KeyTimeProperty, newVal);
-                        //}
-                        //foreach (EasingDoubleKeyFrame sbItem in ((DoubleAnimationUsingKeyFrames)sb.Children[1]).KeyFrames)
-                        //{
-                        //    newVal = KeyTime.FromTimeSpan(sbItem.KeyTime.TimeSpan + tp);
-                        //    sbItem.SetValue(EasingDoubleKeyFrame.KeyTimeProperty, newVal);
-                        //}
-                        //foreach (DiscreteObjectKeyFrame sbItem in ((ObjectAnimationUsingKeyFrames)sb.Children[2]).KeyFrames)
-                        //{
-                        //    newVal = KeyTime.FromTimeSpan(sbItem.KeyTime.TimeSpan + tp);
-                        //    sbItem.SetValue(DiscreteObjectKeyFrame.KeyTimeProperty, newVal);
-                        //}
+
+                        Storyboard.SetTarget(sb.Children[0], tileImage);
+                        Storyboard.SetTarget(sb.Children[1], ((TextBlock)FindName(tileId + Label)));
+                        Storyboard.SetTarget(sb.Children[2], ((TextBlock)FindName(tileId + Label)));
+                      
                         sb.Begin();
                         break;
                 }
             }
             catch (Exception ex)
             {
-                LoggingHelper.LogTrace(1, "Went wrong in ShowTileContent for TileID {0} and content URI {2} : {1}", tileID, ex.Message, contentURI);
+                LoggingHelper.LogTrace(1, "Went wrong in ShowTileContent for TileID {0} and content URI {2} : {1}", tileId, ex.Message, contentUri);
             }
         }
 
@@ -1235,34 +1171,22 @@ namespace RippleFloorApp
 
         #endregion
 
-        #region Color and Animation Helpers
-
         /// <summary>
         /// Code to start animation on the box, for the locking period
         /// </summary>
         /// <param name="boxNumber"></param>
         /// <param name="isAnimation"></param>
-        public void StartAnimationInBox(int boxNumber, bool isAnimation)
+        public void StartAnimationInBox(int tileNumber, bool isAnimation)
         {
-            //Reset all the floor and start animation only on box "value"
             StopAllAnimations();
-
-            //Get the tile action type
-            var tileAction = TileAction.Standard;
-            
-            //Main Option
-            if (Globals.currentAppState == RippleSystemStates.Start)
-                tileAction = FloorData.Tiles["Tile" + boxNumber].Action;
-            else if (Globals.currentAppState == RippleSystemStates.OptionSelected && boxNumber != 0)
-                tileAction = FloorData.Tiles["Tile" + Globals.CurrentlySelectedParent].SubTiles["Tile" + Globals.CurrentlySelectedParent + "SubTile" + boxNumber].Action;
-
-            //Return for static tiles
-            
-            //Return in case the Floor is in QR Mode or if tile does nothing
-            if (tileAction == TileAction.Nothing || tileAction == TileAction.NothingOnFloor || _qrMode)
-                return;
-
-            ((Grid)FindName("Tile" + boxNumber)).Background = isAnimation ? new SolidColorBrush(Colors.Yellow) : new SolidColorBrush(Colors.Red);
+          
+            var tileAction = GetTileAction(tileNumber);
+            if (tileAction != TileAction.Nothing && tileAction != TileAction.NothingOnFloor && !_qrMode)
+            {
+                var findName = (Grid)FindName("Tile" + tileNumber);
+                if (findName != null)
+                    findName.Background = isAnimation ? new SolidColorBrush(Colors.Yellow) : new SolidColorBrush(Colors.Red);
+            }
         }
 
         public void StopAllAnimations()
@@ -1273,7 +1197,7 @@ namespace RippleFloorApp
             UpdateLayout();
         }
 
-        private void DoTileTransitionForMainOption(int Parent)
+        private void DoTileTransitionForMainOption(int parent)
         {
             try
             {
@@ -1282,12 +1206,12 @@ namespace RippleFloorApp
                 List<Tile> tileList = null;
 
                 //Set the colors
-                if (Parent > 0)
+                if (parent > 0)
                 {
-                    ((Grid)FindName("MainOptionGrid")).Background = new SolidColorBrush(FloorData.Tiles["Tile" + Parent].Color);
-                    tileList = FloorData.Tiles["Tile" + Parent].SubTiles.Values.ToList<Tile>();
+                    ((Grid)FindName("MainOptionGrid")).Background = new SolidColorBrush(FloorData.Tiles["Tile" + parent].Color);
+                    tileList = FloorData.Tiles["Tile" + parent].SubTiles.Values.ToList<Tile>();
                 }
-                else if (Parent == 0)
+                else if (parent == 0)
                 {
                     tileList = FloorData.Tiles.Values.ToList<Tile>();
                 }
@@ -1320,28 +1244,26 @@ namespace RippleFloorApp
             }
             catch (Exception ex)
             {
-                LoggingHelper.LogTrace(1, "Went wrong in DoTileTransition for parent {0}: {1}", Parent, ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in DoTileTransition for parent {0}: {1}", parent, ex.Message);
             }
-
         }
 
-        private void ResetColorsForMainOption(int Parent)
+        private void ResetColorsForMainOption(int parentTileId)
         {
             try
             {
-                //Set teh background value for Start
                 ((Grid)FindName("Tile0")).Background = new SolidColorBrush(FloorData.Tiles["Tile0"].Color);
-                //Set the colors
-                if (Parent > 0)
+                
+                if (parentTileId > 0)
                 {
-                    ((Grid)FindName("MainOptionGrid")).Background = new SolidColorBrush(FloorData.Tiles["Tile" + Parent].Color);
+                    ((Grid)FindName("MainOptionGrid")).Background = new SolidColorBrush(FloorData.Tiles["Tile" + parentTileId].Color);
 
-                    foreach (var item in FloorData.Tiles["Tile" + Parent].SubTiles.Values)
+                    foreach (var item in FloorData.Tiles["Tile" + parentTileId].SubTiles.Values)
                     {
                         SetAttributesForWindowsControls<Grid>(item.Id.Substring(item.Id.LastIndexOf("Tile")), "Background", new SolidColorBrush(item.Color));
                     }
                 }
-                else if (Parent == 0)
+                else if (parentTileId == 0)
                 {
                     foreach (var item in FloorData.Tiles.Values)
                     {
@@ -1353,12 +1275,9 @@ namespace RippleFloorApp
             }
             catch (Exception ex)
             {
-                LoggingHelper.LogTrace(1, "Went wrong in ResetColorsForMainOption {0}, {1}", Parent, ex.Message);
+                LoggingHelper.LogTrace(1, "Went wrong in ResetColorsForMainOption {0}, {1}", parentTileId, ex.Message);
             }
         }
-        #endregion
-
-        #region Helpers
 
         private Tile GetFloorTileForID(string tileId)
         {
@@ -1370,7 +1289,7 @@ namespace RippleFloorApp
                 return result;
             }
 
-            // check the subtiles
+            // look in the subtiles
             var subTileId = tileId.Substring(0, tileId.LastIndexOf("SubTile", StringComparison.Ordinal));
             if (FloorData.Tiles[subTileId].SubTiles.ContainsKey(tileId))
             {
@@ -1391,28 +1310,9 @@ namespace RippleFloorApp
             }
         }
 
-        #endregion
-
         private void FloorWindow1_Loaded(object sender, RoutedEventArgs e)
         {
             ResetUi();
-            //Globals.currentAppState = RippleSystemStates.UserDetected;
-            //ArrangeFloor();
-            //Globals.currentAppState = RippleSystemStates.UserWaitToGoOnStart;
-            //ShowStartOptions();
-            //Globals.currentAppState = RippleSystemStates.Start;
-            //Globals.CurrentlySelectedParent = 5;
-            //OnOptionSelected(5);
-            //BackgroundWorker vf = new BackgroundWorker();
-            //vf.DoWork += vf_DoWork;
-            //vf.RunWorkerCompleted += vf_RunWorkerCompleted;
-            //vf.RunWorkerAsync();
-
-            ////Globals.CurrentlySelectedParent = 7;
-            ////Globals.SelectedOptionFullName = "Tile7";
-            //OnGestureDetected(GestureTypes.RightSwipe);
-            //////OnStartSelected();
-            ////OnOptionSelected(8);
         }
     }
 }

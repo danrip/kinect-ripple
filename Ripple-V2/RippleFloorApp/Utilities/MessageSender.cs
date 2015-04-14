@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Pipes;
 using System.Text;
 using System.Threading;
+using System.Windows;
 using System.Windows.Threading;
 using RippleCommonUtilities;
 
@@ -10,67 +11,66 @@ namespace RippleFloorApp.Utilities
 {
     public static class MessageSender
     {
-        private static readonly int BufferSize = 256;
-        public static string pipeName;
-        private static NamedPipeServerStream pipeServer;
-        private static FloorWindow owner;
+        private const int BufferSize = 256;
+        public static string PipeName;
+        private static NamedPipeServerStream _pipeServer;
+        
+        private static Window _owner;
 
         public static void StartReceivingMessages(FloorWindow currentInstance)
         {
-            try
-            {
-                pipeName = "RippleReversePipe";
-                owner = currentInstance;
-                var pipeThread = new ThreadStart(createPipeServer);
-                var listenerThread = new Thread(pipeThread);
-                listenerThread.SetApartmentState(ApartmentState.STA);
-                listenerThread.IsBackground = true;
-                listenerThread.Start();
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            PipeName = "RippleReversePipe";
+            _owner = currentInstance;
+
+            var pipeThread = new ThreadStart(CreatePipeServer);
+            var listenerThread = new Thread(pipeThread);
+           
+            listenerThread.SetApartmentState(ApartmentState.STA);
+            listenerThread.IsBackground = true;
+            
+            listenerThread.Start();
         }
 
-        public static void createPipeServer()
+        public static void CreatePipeServer()
         {
             var decoder = Encoding.Default.GetDecoder();
             var bytes = new Byte[BufferSize];
             var chars = new char[BufferSize];
-            var numBytes = 0;
             var msg = new StringBuilder();
 
             try
             {
-                pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.In, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous);
+                _pipeServer = new NamedPipeServerStream(PipeName, PipeDirection.In, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous);
+                
                 while (true)
                 {
-                    pipeServer.WaitForConnection();
+                    _pipeServer.WaitForConnection();
 
+                    var numBytes = 0;
                     do
                     {
                         msg.Length = 0;
                         do
                         {
-                            numBytes = pipeServer.Read(bytes, 0, BufferSize);
+                            numBytes = _pipeServer.Read(bytes, 0, BufferSize);
                             if (numBytes > 0)
                             {
                                 var numChars = decoder.GetCharCount(bytes, 0, numBytes);
                                 decoder.GetChars(bytes, 0, numBytes, chars, 0, false);
                                 msg.Append(chars, 0, numChars);
                             }
-                        } while (numBytes > 0 && !pipeServer.IsMessageComplete);
+                        } while (numBytes > 0 && !_pipeServer.IsMessageComplete);
+                        
                         decoder.Reset();
                         if (numBytes > 0)
                         {
                             //Notify the UI for message received
-                            if (owner != null)
-                                owner.Dispatcher.Invoke(DispatcherPriority.Send, new Action<string>(owner.OnMessageReceived), msg.ToString());
+                            if (_owner != null)
+                                _owner.Dispatcher.Invoke(DispatcherPriority.Send, new Action<string>(_owner.OnMessageReceived), msg.ToString());
                             //ownerInvoker.Invoke(msg.ToString());
                         }
                     } while (numBytes != 0);
-                    pipeServer.Disconnect();
+                    _pipeServer.Disconnect();
                 }
             }
             catch (Exception)

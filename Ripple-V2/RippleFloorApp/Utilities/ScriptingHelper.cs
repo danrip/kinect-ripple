@@ -1,17 +1,68 @@
 ﻿using System;
-using System.Security.Permissions;
-using System.Runtime.InteropServices;
 using System.ComponentModel;
+using System.Runtime.InteropServices;
+using System.Security.Permissions;
 using System.Speech.Synthesis;
 using RippleCommonUtilities;
 
 namespace RippleFloorApp.Utilities
 {
-    [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
-    [ComVisible(true)]
+    //[PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
+    //[ComVisible(true)]
     public class ScriptingHelper : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
+        
+        private readonly FloorWindow _externalFloorWindow;
+        private bool _systemUnlocked;
+        private bool _exitGame;
+        private bool _exitOnStart;
+        private string _sendMessage = String.Empty;
+
+        public ScriptingHelper(FloorWindow externalFloorWindow)
+        {
+            _externalFloorWindow = externalFloorWindow;
+        }
+
+        public bool SystemUnlocked
+        {
+            get { return _systemUnlocked; }
+            set
+            {
+                _systemUnlocked = value;
+                OnPropertyChanged(new PropertyChangedEventArgs("SystemUnlocked"));
+            }
+        }
+
+        public bool ExitGame
+        {
+            get { return _exitGame; }
+            set
+            {
+                _exitGame = value;
+                OnPropertyChanged(new PropertyChangedEventArgs("ExitGame"));
+            }
+        }
+
+        public bool ExitOnStart
+        {
+            get { return _exitOnStart; }
+            set
+            {
+                _exitOnStart = value;
+                OnPropertyChanged(new PropertyChangedEventArgs("ExitOnStart"));
+            }
+        }
+
+        public string SendMessage
+        {
+            get { return _sendMessage; }
+            set
+            {
+                _sendMessage = value;
+                OnPropertyChanged(new PropertyChangedEventArgs("SendMessage"));
+            }
+        }
 
         public void OnPropertyChanged(PropertyChangedEventArgs e)
         {
@@ -21,61 +72,11 @@ namespace RippleFloorApp.Utilities
             }
         }
 
-        private bool systemUnlocked = false;
-        public bool SystemUnlocked
-        {
-            get { return systemUnlocked; }
-            set
-            {
-                systemUnlocked = value;
-                OnPropertyChanged(new PropertyChangedEventArgs("SystemUnlocked"));
-            }
-        }
-
-        private bool exitGame = false;
-        public bool ExitGame
-        {
-            get { return exitGame; }
-            set
-            {
-                exitGame = value;
-                OnPropertyChanged(new PropertyChangedEventArgs("ExitGame"));
-            }
-        }
-
-        private bool exitOnStart = false;
-        public bool ExitOnStart
-        {
-            get { return exitOnStart; }
-            set
-            {
-                exitOnStart = value;
-                OnPropertyChanged(new PropertyChangedEventArgs("ExitOnStart"));
-            }
-        }
-
-        private String sendMessage = String.Empty;
-        public String SendMessage
-        {
-            get { return sendMessage; }
-            set
-            {
-                sendMessage = value;
-                OnPropertyChanged(new PropertyChangedEventArgs("SendMessage"));
-            }
-        }
-
-        FloorWindow mExternalWPF;
-        public ScriptingHelper(FloorWindow w)
-        {
-            mExternalWPF = w;
-        }
-        
         public void MessageReceived(String messageParam)
         {
             try
             {
-                mExternalWPF.BrowserElement.Document.InvokeScript("executeCommandFromScreen", new Object[]{messageParam});
+                _externalFloorWindow.BrowserElement.Document.InvokeScript("executeCommandFromScreen", new Object[] {messageParam});
             }
             catch (Exception ex)
             {
@@ -87,7 +88,7 @@ namespace RippleFloorApp.Utilities
         {
             try
             {
-                mExternalWPF.BrowserElement.Document.InvokeScript("gestureReceived", new object[] { ges.ToString()});
+               _externalFloorWindow.BrowserElement.Document.InvokeScript("gestureReceived", new object[] {ges.ToString()});
             }
             catch (Exception ex)
             {
@@ -95,15 +96,16 @@ namespace RippleFloorApp.Utilities
             }
         }
 
-        public void executeCommand(String commandText, String commandParameters)
+        public void ExecuteCommand(String commandText, String commandParameters)
         {
-            //RippleCommonUtilities.LoggingHelper.LogTrace(1, "Command Recieved {0} with Parameters {1}", commandText, commandParameters);
             try
             {
-                var parameters = commandParameters.Split(new Char[] { ',' });
+                var parameters = commandParameters.Split(new[] {','});
                 var commandExecuted = false;
-                exitGame = false;
-                exitOnStart = false;
+                
+                _exitGame = false;
+                _exitOnStart = false;
+                
                 switch (commandText)
                 {
                     case "unlockSystem":
@@ -143,26 +145,24 @@ namespace RippleFloorApp.Utilities
                 if (!commandExecuted)
                 {
                     LoggingHelper.LogTrace(1, "Command {0} with Parameters {1} not Supported", commandText, commandParameters);
-
                 }
             }
             catch (Exception ex)
             {
                 LoggingHelper.LogTrace(1, "Went wrong in executeCommand for Scripting helper {0}", ex.Message);
             }
-
         }
 
         private void PlayAudio(string commandParameters)
         {
             using (var bg = new BackgroundWorker())
             {
-                bg.DoWork += bg_DoWork;                
+                bg.DoWork += bg_DoWork;
                 bg.RunWorkerAsync(commandParameters);
             }
         }
 
-        void bg_DoWork(object sender, DoWorkEventArgs e)
+        private void bg_DoWork(object sender, DoWorkEventArgs e)
         {
             using (var synClass = new SpeechSynthesizer())
             {
@@ -172,5 +172,4 @@ namespace RippleFloorApp.Utilities
             }
         }
     }
-
 }
