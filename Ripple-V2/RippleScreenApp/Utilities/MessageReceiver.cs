@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Pipes;
 using System.Text;
 using System.Threading;
+using System.Windows;
 using System.Windows.Threading;
 using RippleCommonUtilities;
 
@@ -10,27 +11,24 @@ namespace RippleScreenApp.Utilities
 {
     public static class MessageReceiver
     {
-        private static readonly int BufferSize = 256;
-        public static string pipeName;
-        private static NamedPipeServerStream pipeServer;
-        private static ScreenWindow owner;
+        private const int BufferSize = 256;
+        public static string PipeName;
+        private static NamedPipeServerStream _pipeServer;
+
+        private static ScreenWindow _owner;
 
         public static void StartReceivingMessages(ScreenWindow currentInstance)
         {
-            try
-            {
-                pipeName = "RipplePipe";
-                owner = currentInstance;
-                var pipeThread = new ThreadStart(CreatePipeServer);
-                var listenerThread = new Thread(pipeThread);
-                listenerThread.SetApartmentState(ApartmentState.STA);
-                listenerThread.IsBackground = true;
-                listenerThread.Start();
-            }
-            catch (Exception)
-            {                
-                throw;
-            }
+            PipeName = "RipplePipe";
+            _owner = currentInstance;
+
+            var pipeThread = new ThreadStart(CreatePipeServer);
+            var listenerThread = new Thread(pipeThread);
+
+            listenerThread.SetApartmentState(ApartmentState.STA);
+            listenerThread.IsBackground = true;
+
+            listenerThread.Start();
         }
 
         public static void CreatePipeServer()
@@ -42,10 +40,11 @@ namespace RippleScreenApp.Utilities
 
             try
             {
-                pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.In, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous);
+                _pipeServer = new NamedPipeServerStream(PipeName, PipeDirection.In, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous);
+                
                 while (true)
                 {
-                    pipeServer.WaitForConnection();
+                    _pipeServer.WaitForConnection();
 
                     var numBytes = 0;
                     do
@@ -53,25 +52,25 @@ namespace RippleScreenApp.Utilities
                         msg.Length = 0;
                         do
                         {
-                            numBytes = pipeServer.Read(bytes, 0, BufferSize);
+                            numBytes = _pipeServer.Read(bytes, 0, BufferSize);
                             if (numBytes > 0)
                             {
                                 var numChars = decoder.GetCharCount(bytes, 0, numBytes);
                                 decoder.GetChars(bytes, 0, numBytes, chars, 0, false);
                                 msg.Append(chars, 0, numChars);
                             }
-                        } while (numBytes > 0 && !pipeServer.IsMessageComplete);
+                        } while (numBytes > 0 && !_pipeServer.IsMessageComplete);
                         
                         decoder.Reset();
                         if (numBytes > 0)
                         {
                             //Notify the UI for message received
-                            if (owner != null)
-                                owner.Dispatcher.Invoke(DispatcherPriority.Send, new Action<string>(owner.OnMessageReceived), msg.ToString());
+                            if (_owner != null)
+                                _owner.Dispatcher.Invoke(DispatcherPriority.Send, new Action<string>(_owner.OnMessageReceived), msg.ToString());
                             //ownerInvoker.Invoke(msg.ToString());
                         }
                     } while (numBytes != 0);
-                    pipeServer.Disconnect();
+                    _pipeServer.Disconnect();
                 }
             }
             catch (Exception)

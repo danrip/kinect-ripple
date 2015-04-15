@@ -33,7 +33,7 @@ namespace RippleDictionary
 
             var xml = file.ReadToEnd();
 
-            var floor = GetFloorFromXML(xml);
+            var floor = GetFloorFromXml(xml);
             var screen = GetScreenFromXML(xml);
 
             var ripple = new Ripple(screen, floor);
@@ -41,16 +41,24 @@ namespace RippleDictionary
             return ripple;
         }
 
-        public static Ripple GetRipple(String filePath)
+        public static Ripple GetRipple(string screenConfigurationDirectory)
         {
-            var file = new StreamReader(filePath + "\\..\\" + XMLElementsAndAttributes.RippleXMLFile);
+            var xml = String.Empty;
 
-            var xml = file.ReadToEnd();
+            if (Directory.Exists(screenConfigurationDirectory))
 
-            var floor = GetFloorFromXML(xml);
-            var screen = GetScreenFromXML(xml);
+            {
+                var screenConfigurationFileName = Path.Combine(screenConfigurationDirectory, XMLElementsAndAttributes.RippleXMLFile);
+                using (var reader = new StreamReader(screenConfigurationFileName))
+                {
+                    xml = reader.ReadToEnd();
+                }
+            }
 
-            var ripple = new Ripple(screen, floor);
+            var floorConfig = GetFloorFromXml(xml);
+            var screenConfig = GetScreenFromXML(xml);
+
+            var ripple = new Ripple(screenConfig, floorConfig);
 
             return ripple;
         }
@@ -177,7 +185,7 @@ namespace RippleDictionary
             using (var stream = new StreamReader(filePath))
             {
                 var xml = stream.ReadToEnd();
-                var floor = GetFloorFromXML(xml);
+                var floor = GetFloorFromXml(xml);
                 return floor;
             }
         }
@@ -198,7 +206,7 @@ namespace RippleDictionary
         ///     RippleDictionary.TypeNotKnownException
         ///     RippleDictionary.ActionNotKnownException
         ///     RippleDictionary.UnparseableXMLException" />
-        public static Floor GetFloorFromXML(string xml)
+        public static Floor GetFloorFromXml(string xml)
         {
             Floor floor = null;
 

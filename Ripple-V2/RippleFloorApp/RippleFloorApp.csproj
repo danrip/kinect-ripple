@@ -296,7 +296,7 @@
     <Content Include="Assets\Videos\Ripple_IntroUnlock.mp4" />
     <Content Include="Assets\Videos\ripple_start.mp4" />
     <Content Include="Assets\Videos\Ripple_Wave.mp4" />
-    <Content Include="FloorData\RippleXML.xml">
+    <Content Include="ScreenConfiguration\RippleXML.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

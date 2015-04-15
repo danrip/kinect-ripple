@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Security.Permissions;
-using System.Runtime.InteropServices;
 using System.ComponentModel;
+using System.Runtime.InteropServices;
+using System.Security.Permissions;
 using RippleCommonUtilities;
 
 namespace RippleScreenApp.Utilities
@@ -50,7 +50,7 @@ namespace RippleScreenApp.Utilities
             }
         }
 
-        public void executeCommand(String commandText, String commandParameters)
+        public void ExecuteCommand(String commandText, String commandParameters)
         {
             try
             {

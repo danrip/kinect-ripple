@@ -7,8 +7,8 @@ using RippleCommonUtilities;
 
 namespace RippleFloorApp.Utilities
 {
-    //[PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
-    //[ComVisible(true)]
+    [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
+    [ComVisible(true)]
     public class ScriptingHelper : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;

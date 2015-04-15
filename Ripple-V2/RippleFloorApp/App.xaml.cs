@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Configuration;
 using System.Windows;
+using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -75,12 +76,21 @@ namespace RippleFloorApp
             
 
 #if DEBUG // we need a little bit more control when debugging
+            floorWin.Topmost = false;
             floorWin.WindowState = WindowState.Normal;
             floorWin.WindowStyle = WindowStyle.SingleBorderWindow;
             floorWin.ResizeMode = ResizeMode.CanResize;
+
+            BuildDebugMenu();
 #endif
 
             floorWin.Show();
+        }
+
+        private void BuildDebugMenu()
+        {
+            var menu = new MenuStrip();
+           
         }
 
         private void Application_Exit_1(object sender, ExitEventArgs e)
@@ -93,7 +103,7 @@ namespace RippleFloorApp
         {
             //Stop the logging session
             LoggingHelper.LogTrace(1, "Something went wrong with the Floor : {0}", e.Exception.Message);
-            //RippleCommonUtilities.LoggingHelper.StopLogging();
+           
             e.Handled = true;
         }
     }

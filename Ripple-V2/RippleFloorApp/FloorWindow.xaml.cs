@@ -37,8 +37,7 @@ namespace RippleFloorApp
         static bool _qrMode;
 
         BackgroundWorker _waitThread;
-        DateTime _now;
-        ScriptingHelper _helper;
+        ScriptingHelper _scriptingHelper;
         
         //animation properties
         Storyboard _tileTransitionSb;
@@ -59,35 +58,27 @@ namespace RippleFloorApp
         /// </summary>
         public FloorWindow(WindowsFormsHost host)
         {
-            try
-            {
-                InitializeComponent();
+            InitializeComponent();
 
-                LoadData();
-                InitializeTiles();
-                InitializeAnimationStoryboards();
+            LoadScreenConfiguration();
+            InitializeTiles();
+            InitializeAnimationStoryboards();
 
-                //Start receiving messages
-                MessageSender.StartReceivingMessages(this);
+            //Start receiving messages
+            MessageSender.StartReceivingMessages(this);
 
-                var kinectHelper = new KinectHelper();
-                kinectHelper.PropertyChanged += kinectHelper_PropertyChanged;
+            var kinectHelper = new KinectHelper();
+            kinectHelper.PropertyChanged += kinectHelper_PropertyChanged;
 
-                //Initialize background wait thread to auto lock the system
-                _autoLockPeriodInSeconds = FloorData.SystemAutoLockPeriod;
-                _checkPeriodInSeconds = 60;
+            //Initialize background wait thread to auto lock the system
+            _autoLockPeriodInSeconds = FloorData.SystemAutoLockPeriod;
+            _checkPeriodInSeconds = 60;
 
-                autoLogoutWorker.DoWork += autoLogoutWorker_DoWork;
-                autoLogoutWorker.RunWorkerCompleted += autoLogoutWorker_RunWorkerCompleted;
+            autoLogoutWorker.DoWork += autoLogoutWorker_DoWork;
+            autoLogoutWorker.RunWorkerCompleted += autoLogoutWorker_RunWorkerCompleted;
 
-                //Start the auto-lougout thread
-                autoLogoutWorker.RunWorkerAsync();
-            }
-            catch (Exception ex)
-            {
-                //Exit and do nothing
-                LoggingHelper.LogTrace(1, "Something went wrong in Floor constructor : {0}", ex.Message);
-            }
+            //Start the auto-lougout thread
+            autoLogoutWorker.RunWorkerAsync();
         }
 
         /// <summary>
@@ -98,7 +89,7 @@ namespace RippleFloorApp
         {
             try
             {
-                //Check for HTMl messages
+                //Check for HTML messages
                 if (val.StartsWith("HTML"))
                 {
                     OnHtmlMessagesReceived(val.Split(':')[1]);
@@ -106,35 +97,31 @@ namespace RippleFloorApp
             }
             catch (Exception ex)
             {
-                //Do nothing
                 LoggingHelper.LogTrace(1, "Went wrong in On message received for Floor {0}", ex.Message);
             }
-
-
         }
 
         private void OnHtmlMessagesReceived(string p)
         {
             try
             {
-                if (_helper != null && GetFloorTileForID(Globals.SelectedOptionFullName).Action == TileAction.HTML)
+                if (_scriptingHelper != null && GetFloorTileForID(Globals.SelectedOptionFullName).Action == TileAction.HTML)
                 {
-                    _helper.MessageReceived(p);
+                    _scriptingHelper.MessageReceived(p);
                 }
 
             }
             catch (Exception ex)
             {
-                //Do nothing
                 LoggingHelper.LogTrace(1, "Went wrong in OnHTMLMessagesReceived received for floor {0}", ex.Message);
             }
         }
 
-        private void LoadData()
+        private void LoadScreenConfiguration()
         {
             try
             {
-                var floorDataFolder = Path.Combine(Directory.GetCurrentDirectory(), "FloorData");
+                var floorDataFolder = Path.Combine(Directory.GetCurrentDirectory(), "ScreenConfiguration");
                 FloorData = Dictionary.GetFloor(floorDataFolder);                    
             }
             catch(FileNotFoundException fEx)
@@ -269,7 +256,7 @@ namespace RippleFloorApp
         #region Unlock code
 
         //Handles messages sent by HTML animations
-        void helper_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        void ScriptingHelperPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             try
             {
@@ -281,10 +268,10 @@ namespace RippleFloorApp
                         //Check if the system is configured to be unlocked through WPF animations, and its been unlocked
                         if (scriptingHelper.SystemUnlocked && FloorData.Start.Unlock.Mode == Mode.HTML)
                         {
-                            if (_helper != null)
+                            if (_scriptingHelper != null)
                             {
-                                _helper.PropertyChanged -= helper_PropertyChanged;
-                                _helper = null;
+                                _scriptingHelper.PropertyChanged -= ScriptingHelperPropertyChanged;
+                                _scriptingHelper = null;
                             }
 
                             UnlockRippleSystem();
@@ -296,9 +283,9 @@ namespace RippleFloorApp
                         if (scriptingHelper.ExitOnStart && Globals.currentAppState == RippleSystemStates.UserPlayingAnimations)
                         {
                             //End the game and go to start
-                            if (_helper != null)
+                            if (_scriptingHelper != null)
                             {
-                                _helper.PropertyChanged -= helper_PropertyChanged;
+                                _scriptingHelper.PropertyChanged -= ScriptingHelperPropertyChanged;
 
                                 if (BrowserElement != null)
                                     BrowserElement.Dispose();
@@ -308,7 +295,7 @@ namespace RippleFloorApp
                                     BrowserHost.Dispose();
                                 BrowserHost = null;
 
-                                _helper = null;
+                                _scriptingHelper = null;
                             }
                             //Start the video
                             ((MediaElement)FindName("FloorVideoControl")).Play();
@@ -325,9 +312,9 @@ namespace RippleFloorApp
                         if (scriptingHelper.ExitGame && Globals.currentAppState == RippleSystemStates.UserPlayingAnimations)
                         {
                             //End the game and go to start with the main options laid out
-                            if (_helper != null)
+                            if (_scriptingHelper != null)
                             {
-                                _helper.PropertyChanged -= helper_PropertyChanged;
+                                _scriptingHelper.PropertyChanged -= ScriptingHelperPropertyChanged;
 
                                 if (BrowserElement != null)
                                     BrowserElement.Dispose();
@@ -337,7 +324,7 @@ namespace RippleFloorApp
                                     BrowserHost.Dispose();
                                 BrowserHost = null;
 
-                                _helper = null;
+                                _scriptingHelper = null;
                             }
                             //Start the video
                             ((MediaElement)FindName("FloorVideoControl")).Play();
@@ -376,12 +363,11 @@ namespace RippleFloorApp
         {
             //Set the system state - Updated the State
             Globals.currentAppState = RippleSystemStates.UserDetected;
-            //Globals.currentAppState = RippleSystemStates.UserWaitToGoOnStart;
-
+           
             //Send a message to the screen to start the system along with the user name if present
             MessageSender.SendMessage("System Start:" + (String.IsNullOrEmpty(Globals.UserName) ? Globals.EmpAlias : Globals.UserName));
 
-            //ArrangeFloor();
+           
             //Wait for the screen to finish the start process for the defined duration
             _waitThread = new BackgroundWorker();
             //Get the wait value
@@ -404,19 +390,6 @@ namespace RippleFloorApp
                 _lastSelectedOptionName = "";
                 _qrMode = false;
 
-                //Dispose the objects
-                //if (player != null)
-                //{
-                //    //Stop the flash.
-                //    player.Stop();
-                //    player.Width = 0;
-                //    player.Height = 0;
-                //    player.Dispose();
-                //    host.Dispose();
-                //    player = null;
-                //    host = null;
-                //}
-
                 //else 
                 if (BrowserElement != null)
                 {
@@ -427,7 +400,7 @@ namespace RippleFloorApp
                         BrowserHost.Dispose();
                     BrowserHost = null;
 
-                    _helper = null;
+                    _scriptingHelper = null;
                 }
 
                 FlashContainer.Children.Clear();
@@ -532,13 +505,12 @@ namespace RippleFloorApp
                 LoggingHelper.LogTrace(1, "GestureDetected {0}", type.ToString());
 
                 //Pass the message to the HTML content opened on the floor
-                if (_helper != null)
+                if (_scriptingHelper != null)
                 {
-                    _helper.GestureReceived(type);
+                    _scriptingHelper.GestureReceived(type);
                 }
 
                 //To handle unlock if defined in the XML
-                //Check if unlock mode is Gesture and is the current gesture defined there to unlock the system
                 if (Globals.currentAppState == RippleSystemStates.NoUser && FloorData.Start.Unlock.Mode == Mode.Gesture && FloorData.Start.Unlock.UnlockType == type.ToString())
                 {
                     UnlockRippleSystem();
@@ -552,7 +524,7 @@ namespace RippleFloorApp
                     if (t.CorrespondingScreenContentType == ContentType.PPT)
                     {
                         if (type == GestureTypes.LeftSwipe || type == GestureTypes.RightSwipe)
-                            MessageSender.SendMessage("Gesture:" + type.ToString());
+                            MessageSender.SendMessage("Gesture:" + type);
                     }
                     //Browser accepts zoom in, zoom out and scrolling
                     else if (t.CorrespondingScreenContentType == ContentType.HTML && t.Action != TileAction.HTML)
@@ -805,7 +777,7 @@ namespace RippleFloorApp
 
                     BrowserHost = null;
 
-                    _helper = null;
+                    _scriptingHelper = null;
                 }
 
                 FlashContainer.Children.Clear();
@@ -1105,61 +1077,39 @@ namespace RippleFloorApp
                 MainContainer.Visibility = Visibility.Collapsed;
                 FlashContainer.Visibility = Visibility.Visible;
 
-                //if (Path.GetExtension(actionUri).ToLower().Equals(".swf"))
-                //{
-                //    //Play flash animation
-                //    host = new WindowsFormsHost();
-                //    player = new FlashAxControl();
-                //    host.Child = player;
-                //    FlashContainer.Children.Clear();
-                //    FlashContainer.Children.Add(host);
+                //Play HTML animations
+                _scriptingHelper = new ScriptingHelper(this);
+                _scriptingHelper.PropertyChanged += ScriptingHelperPropertyChanged;
 
-                //    //set size - based on the resolution
-                //    player.Width = (int)Globals.CurrentResolution.HorizontalResolution;
-                //    player.Height = (int)Globals.CurrentResolution.VerticalResolution;
-                //    //load & play the movie
-                //    player.LoadMovie(Utilities.HelperMethods.GetAssetURI(actionUri));
-                //    player.Play();
-
-                //    //Get the window focus
-                //    this.Focus();
-                //}
-                //else
+                BrowserElement = new WebBrowser
                 {
-                    //Play HTML animations
-                    _helper = new ScriptingHelper(this);
-                    _helper.PropertyChanged += helper_PropertyChanged;
+                    ScriptErrorsSuppressed = true, 
+                    ObjectForScripting = _scriptingHelper
+                };
 
-                    BrowserElement = new WebBrowser
-                    {
-                        ScriptErrorsSuppressed = true, 
-                        ObjectForScripting = _helper
-                    };
+                BrowserHost = new WindowsFormsHost
+                {
+                    Child = BrowserElement
+                };
 
-                    BrowserHost = new WindowsFormsHost
-                    {
-                        Child = BrowserElement
-                    };
-
-                    FlashContainer.Children.Clear();
-                    FlashContainer.Children.Add(BrowserHost);
+                FlashContainer.Children.Clear();
+                FlashContainer.Children.Add(BrowserHost);
 
                     
-                    var fileLocation = HelperMethods.GetAssetUri(actionUri);
-                    var pageUri = String.Empty;
+                var fileLocation = HelperMethods.GetAssetUri(actionUri);
+                var pageUri = String.Empty;
 
-                    if (File.Exists(fileLocation))
-                    {
-                        var pathParts = fileLocation.Split(new char[] { ':' });
-                        pageUri = "file://127.0.0.1/" + pathParts[0] + "$" + pathParts[1];
-                    }
-                    else
-                    {
-                        pageUri = actionUri;
-                    }
-
-                    BrowserElement.Navigate(pageUri);
+                if (File.Exists(fileLocation))
+                {
+                    var pathParts = fileLocation.Split(new [] { ':' });
+                    pageUri = "file://127.0.0.1/" + pathParts[0] + "$" + pathParts[1];
                 }
+                else
+                {
+                    pageUri = actionUri;
+                }
+
+                BrowserElement.Navigate(pageUri);
             }
             catch (Exception ex)
             {

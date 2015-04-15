@@ -11,15 +11,15 @@ namespace RippleScreenApp.Utilities
     {
         internal static DataSet telemetryData;
 
-        private static DateTime currentTime;
-        private static String setupID;
-        private static String personName;
-        private static String TileName;
-        private static String TileID;
-        private static String Option;
-        private static DateTime oldTime;
+        private static DateTime _currentTime;
+        private static string _setupId;
+        private static string _personName;
+        private static string _tileName;
+        private static string _tileId;
+        private static string _option;
+        private static DateTime _oldTime;
 
-        private static String TelemetryFilePath
+        private static string TelemetryFilePath
         {
             get { return Path.Combine(Path.GetTempPath(), "Ripple", "RippleTelemetryData.xml"); }
         }
@@ -106,8 +106,8 @@ namespace RippleScreenApp.Utilities
         {
             if(telemetryData != null)
             {
-                currentTime = DateTime.Now;
-                telemetryData.Tables[0].Rows.Add(setupID, personName, TileName, TileID, Option, currentTime, currentTime);
+                _currentTime = DateTime.Now;
+                telemetryData.Tables[0].Rows.Add(setupID, personName, TileName, TileID, Option, _currentTime, _currentTime);
             }
         }
 
@@ -116,14 +116,14 @@ namespace RippleScreenApp.Utilities
             if (telemetryData != null && telemetryData.Tables[0].Rows.Count >= 1)
             {
                 //Get the previous entry
-                setupID = Convert.ToString(telemetryData.Tables[0].Rows[telemetryData.Tables[0].Rows.Count - 1].ItemArray[0]);
-                personName = Convert.ToString(telemetryData.Tables[0].Rows[telemetryData.Tables[0].Rows.Count - 1].ItemArray[1]);
-                TileName = Convert.ToString(telemetryData.Tables[0].Rows[telemetryData.Tables[0].Rows.Count - 1].ItemArray[2]);
-                TileID = Convert.ToString(telemetryData.Tables[0].Rows[telemetryData.Tables[0].Rows.Count - 1].ItemArray[3]);
-                Option = Convert.ToString(telemetryData.Tables[0].Rows[telemetryData.Tables[0].Rows.Count - 1].ItemArray[4]);
-                oldTime = Convert.ToDateTime(telemetryData.Tables[0].Rows[telemetryData.Tables[0].Rows.Count - 1].ItemArray[5]);
-                currentTime = DateTime.Now;
-                telemetryData.Tables[0].Rows[telemetryData.Tables[0].Rows.Count - 1].ItemArray = new object[] { setupID, personName, TileName, TileID, Option, oldTime, currentTime};
+                _setupId = Convert.ToString(telemetryData.Tables[0].Rows[telemetryData.Tables[0].Rows.Count - 1].ItemArray[0]);
+                _personName = Convert.ToString(telemetryData.Tables[0].Rows[telemetryData.Tables[0].Rows.Count - 1].ItemArray[1]);
+                _tileName = Convert.ToString(telemetryData.Tables[0].Rows[telemetryData.Tables[0].Rows.Count - 1].ItemArray[2]);
+                _tileId = Convert.ToString(telemetryData.Tables[0].Rows[telemetryData.Tables[0].Rows.Count - 1].ItemArray[3]);
+                _option = Convert.ToString(telemetryData.Tables[0].Rows[telemetryData.Tables[0].Rows.Count - 1].ItemArray[4]);
+                _oldTime = Convert.ToDateTime(telemetryData.Tables[0].Rows[telemetryData.Tables[0].Rows.Count - 1].ItemArray[5]);
+                _currentTime = DateTime.Now;
+                telemetryData.Tables[0].Rows[telemetryData.Tables[0].Rows.Count - 1].ItemArray = new object[] { _setupId, _personName, _tileName, _tileId, _option, _oldTime, _currentTime};
             }
         }
     }

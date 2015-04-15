@@ -174,7 +174,6 @@ namespace RippleFloorApp.Utilities
 
                 // open the reader for the body frames
                 _reader = _sensor.BodyFrameSource.OpenReader();
-
                 if (_reader != null)
                 {
                     _reader.FrameArrived += sensor_SkeletonFrameReady;
@@ -192,15 +191,6 @@ namespace RippleFloorApp.Utilities
                 // register the gestures for this demo
                 RegisterGestures();
             }
-            //if (sensor != null)
-            //{
-            //    this.sensor.SkeletonStream.Enable();
-            //    this.sensor.SkeletonFrameReady += sensor_SkeletonFrameReady;
-            //    this._FrameSkeletons = new Skeleton[this.sensor.SkeletonStream.FrameSkeletonArrayLength];
-            //    sensor.Start();
-            //    KinectConnectionState = "Connected";
-            //}
-
         }
 
         void Unitialize()

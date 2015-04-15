@@ -22,7 +22,7 @@ namespace RippleScreenApp
     public partial class ScreenWindow : Window
     {
         internal static Ripple RippleData;
-        internal static String PersonName;
+        internal static string PersonName;
 
         private static TextBlock tbElement = new TextBlock();
         private static TextBlock fullScreenTbElement = new TextBlock();
@@ -34,7 +34,7 @@ namespace RippleScreenApp
         
         private BackgroundWorker _myBackgroundWorker;
         private BackgroundWorker _pptWorker;
-        private ScriptingHelper _helper;
+        private ScriptingHelper _scriptingHelper;
         public WindowsFormsHost Host;
         public WebBrowser BrowserElement;
 
@@ -47,24 +47,14 @@ namespace RippleScreenApp
         
         public ScreenWindow()
         {
-           
-            try
-            {
-                InitializeComponent();
+            InitializeComponent();
 
-                LoadData();
+            LoadScreenConfigurations();
 
-                SetObjectProperties();
+            //SetObjectProperties();
 
-                //Start receiving messages
-                MessageReceiver.StartReceivingMessages(this);
-
-            }
-            catch (Exception ex)
-            {
-                //Exit and do nothing
-                LoggingHelper.LogTrace(1, "Went wrong in Screen {0}", ex.Message);
-            }
+            //Start receiving messages
+            MessageReceiver.StartReceivingMessages(this);
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -72,6 +62,10 @@ namespace RippleScreenApp
             try
             {
                 WindowState = WindowState.Maximized;
+#if DEBUG
+                WindowState = WindowState.Normal;
+                WindowStyle = WindowStyle.SingleBorderWindow;
+#endif
                 ResetUI();
             }
             catch (Exception ex)
@@ -100,12 +94,12 @@ namespace RippleScreenApp
         /// <summary>
         /// Method that loads the configured data for the Screen, right now the Source is XML
         /// </summary>
-        private void LoadData()
+        private void LoadScreenConfigurations()
         {
             try
             {
-                //Loads the local dictionary data from the configuration XML
-                RippleData = Dictionary.GetRipple(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location));
+                var configurationDataFolder = Path.Combine(Directory.GetCurrentDirectory(), "ScreenConfiguration");
+                RippleData = Dictionary.GetRipple(configurationDataFolder);
             }
             catch (Exception ex)
             {
@@ -147,126 +141,112 @@ namespace RippleScreenApp
         /// Code will receive messages from the floor
         /// Invoke appropriate content projection based on the tile ID passed
         /// </summary>
-        /// <param name="val"></param>
-        public void OnMessageReceived(string val)
+        public void OnMessageReceived(string message)
         {
             try
             {
-                //Check for reset
-                if (val.Equals("Reset"))
+                switch (message.ToLower())
                 {
-                    //Update the previous entry
-                    TelemetryWriter.UpdatePreviousEntry();
-
-                    //Reset the system
-                    ResetUI();
-                }
-                //Check for System start
-                //Check for System start
-                else if (val.StartsWith("System Start"))
-                {
-                    //Load the telemetry Data
-                    TelemetryWriter.RetrieveTelemetryData();
-
-                    //The floor has asked the screen to start the system
-                    //Get the User Name
-                    Globals.UserName = val.Split(':')[1];
-
-                    //Get the person identity for the session
-                    PersonName = String.IsNullOrEmpty(Globals.UserName) ? Convert.ToString(Guid.NewGuid()) : Globals.UserName;
-
-                    TelemetryWriter.AddTelemetryRow(RippleData.Floor.SetupID, PersonName, "Unlock", val, "Unlock");
-
-                    //Set the system state
-                    Globals.currentAppState = RippleSystemStates.UserDetected;
-
-                    //Play the Intro Content
-                    ProjectIntroContent(RippleData.Screen.ScreenContents["IntroVideo"]);
-                }
-                //Check for gestures
-                else if (val.StartsWith("Gesture"))
-                {
-                    OnGestureInput(val.Split(':')[1]);
-                }
-                //Check for HTML messages
-                else if (val.StartsWith("HTML"))
-                {
-                    OnHTMLMessagesReceived(val.Split(':')[1]);
-                }
-                //Check for options- TODO need to figure out
-                else if (val.StartsWith("Option"))
-                {
-                    //Do nothing
-                }
-                //Check if a content - tile mapping or in general content tag exists
-                else
-                {
-                    if (RippleData.Screen.ScreenContents.ContainsKey(val) && RippleData.Screen.ScreenContents[val].Type != ContentType.Nothing)
-                    {
-                        //Set the system state
-                        Globals.currentAppState = RippleSystemStates.OptionSelected;
-
-                        ProjectContent(RippleData.Screen.ScreenContents[val]);
-
-                        LoggingHelper.LogTrace(1, "In Message Received {0} {1}:{2}", TelemetryWriter.telemetryData.Tables[0].Rows.Count, TelemetryWriter.telemetryData.Tables[0].Rows[TelemetryWriter.telemetryData.Tables[0].Rows.Count - 1].ItemArray[6], DateTime.Now);
-
-                        //Update the end time for the previous
+                    case "reset":
+                        //Update the previous entry
                         TelemetryWriter.UpdatePreviousEntry();
+                        ResetUI();
+                        break;
+                    case "system start":
+                        TelemetryWriter.RetrieveTelemetryData();
 
-                        //Insert the new entry
-                        TelemetryWriter.AddTelemetryRow(RippleData.Floor.SetupID, PersonName, ((_currentTile = GetFloorTileForID(val))==null)?"Unknown":_currentTile.Name, val, (val == "Tile0") ? "Start" : "Option");
-                    }
-                    else
-                    {
-                        //Stop any existing projections
-                        HelperMethods.StopPresentation();
-                        FullScreenContentGrid.Children.Clear();
-                        ContentGrid.Children.Clear();
+                        //The floor has asked the screen to start the system
+                        Globals.UserName = message.Split(':')[1];
 
-                        //Set focus for screen window also
-                        Helper.ClickOnScreenToGetFocus();
+                        //Get the person identity for the session
+                        
+                        TelemetryWriter.AddTelemetryRow(RippleData.Floor.SetupID, PersonName, "Unlock", message, "Unlock");
 
-                        //Stop any existing videos
-                        _loopVideo = false;
-                        VideoControl.Source = null;
-                        FullScreenVideoControl.Source = null;
+                        Globals.currentAppState = RippleSystemStates.UserDetected;
+                        ProjectIntroContent(RippleData.Screen.ScreenContents["IntroVideo"]);
+                        break;
+                    case "gesture":
+                        OnGestureInput(message.Split(':')[1]);
+                        break;
+                    case "html":
+                        OnHtmlMessagesReceived(message.Split(':')[1]);
+                        break;
+                    case "option":
+                        //unknown so far...
+                        break;
+                    default:
+                        //Check if a content - tile mapping or in general content tag exists
+                        if (RippleData.Screen.ScreenContents.ContainsKey(message) && RippleData.Screen.ScreenContents[message].Type != ContentType.Nothing)
+                        {
+                            var telemetryRowCount = TelemetryWriter.telemetryData.Tables[0].Rows.Count; 
 
-                        //Clean the images
-                        fullScreenImgElement.Source = null;
-                        imgElement.Source = null;
+                            //Set the system state
+                            Globals.currentAppState = RippleSystemStates.OptionSelected;
 
-                        //Clear the header text
-                        TitleLabel.Text = "";
+                            ProjectContent(RippleData.Screen.ScreenContents[message]);
+                            
+                            LoggingHelper.LogTrace(1, "In Message Received {0} {1}:{2}", telemetryRowCount, TelemetryWriter.telemetryData.Tables[0].Rows[telemetryRowCount - 1].ItemArray[6], DateTime.Now);
 
-                        //Dispose the objects
-                        if(BrowserElement != null)
-                            BrowserElement.Dispose();
-                        BrowserElement = null;
+                            //Update the end time for the previous
+                            TelemetryWriter.UpdatePreviousEntry();
 
-                        if (Host != null)
-                            Host.Dispose();
-                        Host = null;
-
-                        if (_helper != null)
-                            _helper.PropertyChanged -= helper_PropertyChanged;
-                        _helper = null;
-
-                        _currentScreenContent = ContentType.Nothing;
-
-                        ShowText("No content available for this option, Please try some other tile option", "No Content");
-                    }
+                            //Insert the new entry
+                            TelemetryWriter.AddTelemetryRow(RippleData.Floor.SetupID, PersonName,
+                                ((_currentTile = GetFloorTileForID(message)) == null) ? "Unknown" : _currentTile.Name, message, (message == "Tile0") ? "Start" : "Option");
+                        }
+                        else
+                        {
+                            StopAndClearScreenContent();
+                            ShowText("No content available for this option, Please try some other tile option", "No Content");
+                        }
+                        break;
                 }
             }
             catch (Exception ex)
             {
-                //Do nothing
                 LoggingHelper.LogTrace(1, "Went wrong in On message received for Screen {0}", ex.Message);
             }
-
-
         }
 
-        private void OnHTMLMessagesReceived(string p)
+        private void StopAndClearScreenContent()
+        {
+            //Stop any existing projections
+            HelperMethods.StopPresentation();
+            FullScreenContentGrid.Children.Clear();
+            ContentGrid.Children.Clear();
+
+            //Set focus for screen window also
+            Helper.ClickOnScreenToGetFocus();
+
+            //Stop any existing videos
+            _loopVideo = false;
+            VideoControl.Source = null;
+            FullScreenVideoControl.Source = null;
+
+            //Clean the images
+            fullScreenImgElement.Source = null;
+            imgElement.Source = null;
+
+            //Clear the header text
+            TitleLabel.Text = "";
+
+            //Dispose the objects
+            if (BrowserElement != null)
+                BrowserElement.Dispose();
+            BrowserElement = null;
+
+            if (Host != null)
+                Host.Dispose();
+            Host = null;
+
+            if (_scriptingHelper != null)
+                _scriptingHelper.PropertyChanged -= ScriptingHelperPropertyChanged;
+            _scriptingHelper = null;
+
+            _currentScreenContent = ContentType.Nothing;
+        }
+
+        private void OnHtmlMessagesReceived(string p)
         {
             try
             {
@@ -276,9 +256,9 @@ namespace RippleScreenApp
                     return;
                 }
 
-                if (_helper != null && _currentScreenContent == ContentType.HTML)
+                if (_scriptingHelper != null && _currentScreenContent == ContentType.HTML)
                 {
-                    _helper.MessageReceived(p);
+                    _scriptingHelper.MessageReceived(p);
                 }
 
             }
@@ -329,7 +309,7 @@ namespace RippleScreenApp
                 //Browser mode
                 else if (_currentScreenContent == ContentType.HTML)
                 {
-                    OnHTMLMessagesReceived(inputGesture.ToString());
+                    OnHtmlMessagesReceived(inputGesture.ToString());
                 }
 
                 //Set focus for screen window also
@@ -353,9 +333,9 @@ namespace RippleScreenApp
             {
                 if (screenContent.Type == ContentType.HTMLMessage)
                 {
-                    if (_helper != null && _currentScreenContent == ContentType.HTML)
+                    if (_scriptingHelper != null && _currentScreenContent == ContentType.HTML)
                     {
-                        _helper.MessageReceived(screenContent.Content);
+                        _scriptingHelper.MessageReceived(screenContent.Content);
                         return;
                     }
                 }
@@ -389,9 +369,9 @@ namespace RippleScreenApp
                     Host.Dispose();
                 Host = null;
 
-                if (_helper != null)
-                    _helper.PropertyChanged -= helper_PropertyChanged;
-                _helper = null;
+                if (_scriptingHelper != null)
+                    _scriptingHelper.PropertyChanged -= ScriptingHelperPropertyChanged;
+                _scriptingHelper = null;
 
                 _currentScreenContent = screenContent.Type;
 
@@ -461,9 +441,9 @@ namespace RippleScreenApp
                 if (Host != null)
                     Host.Dispose();
                 Host = null;
-                if (_helper != null)
-                    _helper.PropertyChanged -= helper_PropertyChanged;
-                _helper = null;
+                if (_scriptingHelper != null)
+                    _scriptingHelper.PropertyChanged -= ScriptingHelperPropertyChanged;
+                _scriptingHelper = null;
 
                 //Play the Intro video 
                 TitleLabel.Text = "";
@@ -692,10 +672,10 @@ namespace RippleScreenApp
                     Host = new WindowsFormsHost();
                     BrowserElement = new WebBrowser();
                     BrowserElement.ScriptErrorsSuppressed = true;
-                    _helper = new ScriptingHelper(this);
-                    BrowserElement.ObjectForScripting = _helper;
+                    _scriptingHelper = new ScriptingHelper(this);
+                    BrowserElement.ObjectForScripting = _scriptingHelper;
                     Host.Child = BrowserElement;
-                    _helper.PropertyChanged += helper_PropertyChanged;
+                    _scriptingHelper.PropertyChanged += ScriptingHelperPropertyChanged;
                     FullScreenContentGrid.Children.Clear();
                     FullScreenContentGrid.Children.Add(Host);
                     FullScreenContentGrid.Visibility = Visibility.Visible;
@@ -707,10 +687,10 @@ namespace RippleScreenApp
                     Host = new WindowsFormsHost();
                     BrowserElement = new WebBrowser();
                     BrowserElement.ScriptErrorsSuppressed = true;
-                    _helper = new ScriptingHelper(this);
+                    _scriptingHelper = new ScriptingHelper(this);
                     Host.Child = BrowserElement;
-                    BrowserElement.ObjectForScripting = _helper;
-                    _helper.PropertyChanged += helper_PropertyChanged;
+                    BrowserElement.ObjectForScripting = _scriptingHelper;
+                    _scriptingHelper.PropertyChanged += ScriptingHelperPropertyChanged;
                     ContentGrid.Children.Clear();
                     ContentGrid.Children.Add(Host);
                     ContentGrid.Visibility = Visibility.Visible;
@@ -801,13 +781,8 @@ namespace RippleScreenApp
             //}
         }
 
-        private void Window_Closing_1(object sender, CancelEventArgs e)
-        {
-            LoggingHelper.StopLogging();
-        }
-
         //Handles messages sent by HTML animations
-        void helper_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        void ScriptingHelperPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             try
             {

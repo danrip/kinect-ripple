@@ -57,6 +57,13 @@ namespace RippleScreenApp
                 Width = hRes,
                 ResizeMode = ResizeMode.NoResize
             };
+
+#if DEBUG // we need a little bit more control when debugging
+            screenWin.WindowState = WindowState.Normal;
+            screenWin.WindowStyle = WindowStyle.SingleBorderWindow;
+            screenWin.ResizeMode = ResizeMode.CanResize;
+#endif
+
             screenWin.Show();
         }
 

@@ -5,29 +5,28 @@ using System.Text;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
-using RippleCommonUtilities;
+using Ripple.Common;
 
-namespace RippleFloorApp.Utilities
+namespace RippleCommonUtilities.Messaging
 {
-    public static class MessageSender
+    public static class NamedPipeServer
     {
         private const int BufferSize = 256;
         public static string PipeName;
         private static NamedPipeServerStream _pipeServer;
-        
-        private static FloorWindow _owner;
+        private static Window _owner;
 
-        public static void StartReceivingMessages(FloorWindow currentInstance)
+        public static void StartReceivingMessages(Window currentInstance, string pipeName)
         {
-            PipeName = "RippleReversePipe";
+            PipeName = pipeName;
             _owner = currentInstance;
 
             var pipeThread = new ThreadStart(CreatePipeServer);
             var listenerThread = new Thread(pipeThread);
-           
+
             listenerThread.SetApartmentState(ApartmentState.STA);
             listenerThread.IsBackground = true;
-            
+
             listenerThread.Start();
         }
 
@@ -41,7 +40,7 @@ namespace RippleFloorApp.Utilities
             try
             {
                 _pipeServer = new NamedPipeServerStream(PipeName, PipeDirection.In, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous);
-                
+
                 while (true)
                 {
                     _pipeServer.WaitForConnection();
@@ -60,15 +59,13 @@ namespace RippleFloorApp.Utilities
                                 msg.Append(chars, 0, numChars);
                             }
                         } while (numBytes > 0 && !_pipeServer.IsMessageComplete);
-                        
+
                         decoder.Reset();
                         if (numBytes > 0 && _owner != null)
                         {
-                            //Notify the UI for message received
-                            _owner.Dispatcher.Invoke(DispatcherPriority.Send, new Action<string>(_owner.OnMessageReceived), msg.ToString());
+                            //_owner.Dispatcher.Invoke(DispatcherPriority.Send, new Action<string>(_owner.OnMessageReceived), msg.ToString());
                         }
                     } while (numBytes != 0);
-
                     _pipeServer.Disconnect();
                 }
             }
@@ -80,7 +77,7 @@ namespace RippleFloorApp.Utilities
 
         public static void SendMessage(String optionVal)
         {
-            using (var pipeClient = new NamedPipeClientStream(".", "RipplePipe", PipeDirection.Out, PipeOptions.Asynchronous))
+            using (var pipeClient = new NamedPipeClientStream(".", "RippleReversePipe", PipeDirection.Out, PipeOptions.Asynchronous))
             {
                 try
                 {
@@ -95,7 +92,7 @@ namespace RippleFloorApp.Utilities
                     }
                     catch (Exception ex)
                     {
-                        LoggingHelper.LogTrace(1, "Went wrong in Send Message at Screen side {0}", ex.Message);
+                        LoggingHelper.LogTrace(1, "Went wrong in Send Message {1} at Screen side {0}", ex.Message, optionVal);
                         return;
                     }
                 }
@@ -106,5 +103,6 @@ namespace RippleFloorApp.Utilities
                 }
             }
         }
+
     }
 }
